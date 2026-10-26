@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-title" content="클립 키트">
+<title>클립 업로드 키트</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gowun+Batang:wght@700&display=swap">
+<style>
+/* 한 손 스크롤용 세로 카드 목록: 위에 이번 주 미션 진행, 아래로 올릴 항목 카드. 카드 하나 = 앱에서 한 번 올리는 단위 */
+:root {
+  --bg: #F6F3EE; --card: #FFFFFF; --ink: #24201B; --sub: #7A7066; --line: #E6DFD5;
+  --accent: #B8692A; --accent-ink: #FFFFFF; --soft: #F3E6D8; --ok: #2E7D5B; --ok-soft: #E1F1E8;
+  --display: "Gowun Batang", "IBM Plex Sans KR", serif;
+  --body: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #1B1815; --card: #26221E; --ink: #F1ECE5; --sub: #A89D90; --line: #3A342E;
+  --accent: #E0954F; --accent-ink: #1B1815; --soft: #3A2C20; --ok: #6CC79B; --ok-soft: #1F3A2D; color-scheme: dark } }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+main { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--display); font-size: 26px; margin: 0; text-wrap: balance; }
+.lead { color: var(--sub); margin: 4px 0 0; font-size: 14px; }
+.mission { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.meter { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.meter b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.meter span { color: var(--sub); font-size: 13px; display: block; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+details { background: var(--soft); border-radius: 12px; padding: 12px 14px; }
+summary { font-weight: 600; cursor: pointer; }
+details ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.tabs { display: flex; gap: 8px; }
+.tabs button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 600 14px var(--body); }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.done { opacity: .62; }
+.head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.head h2 { font-size: 19px; margin: 0; flex: 1; min-width: 0; }
+.chip { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--accent); letter-spacing: .02em; }
+.date { color: var(--sub); font-size: 13px; font-variant-numeric: tabular-nums; }
+.strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.strip img { height: 132px; width: auto; border-radius: 8px; flex: none; background: var(--line); }
+.row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 8px; font-size: 14px; }
+.row dt { color: var(--sub); }
+.row dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.mini { font: 600 13px var(--body); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.desc { background: var(--bg); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; max-height: 9.5em; overflow: hidden; }
+.desc.open { max-height: none; }
+.more { align-self: flex-start; background: none; border: 0; color: var(--sub); font: 500 13px var(--body); padding: 0; text-decoration: underline; }
+.req { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.req > button { padding: 14px 10px; border-radius: 12px; border: 1px dashed var(--accent); background: var(--card); color: var(--accent); font: 700 15px var(--body); }
+.req > button[aria-expanded="true"] { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+form.order { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+form.order h2 { margin: 0; font-size: 18px; }
+form.order label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--sub); font-weight: 500; }
+form.order input, form.order textarea { font: 400 16px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; }
+form.order textarea { min-height: 84px; resize: vertical; }
+form.order .seg { display: flex; gap: 8px; }
+form.order .seg label { flex: 1; flex-direction: row; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: var(--ink); }
+form.order .seg input { width: auto; margin: 0; accent-color: var(--accent); }
+form.order .hint { margin: 0; font-size: 12.5px; color: var(--sub); }
+.gh { display: block; text-align: center; padding: 14px; border-radius: 12px; background: var(--ink); color: var(--bg); font: 700 16px var(--body); text-decoration: none; }
+.save { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font: 700 16px var(--body); }
+.save[disabled] { opacity: .6; cursor: progress; }
+.save.ok { border-color: var(--ok); color: var(--ok); }
+.links { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
+.links a { color: var(--accent); }
+.copy { width: 100%; padding: 14px; border-radius: 12px; border: 0; background: var(--accent); color: var(--accent-ink); font: 700 16px var(--body); }
+.copy.ok, .mini.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+.steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--sub); }
+.steps li { border: 1px dashed var(--line); border-radius: 999px; padding: 3px 9px; }
+.steps li.key { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.done-btn { padding: 12px; border-radius: 12px; border: 1px solid var(--ok); background: transparent; color: var(--ok); font: 700 15px var(--body); }
+.card.done .done-btn { background: var(--ok-soft); }
+.report { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.report p { margin: 0; font-size: 13.5px; color: var(--sub); }
+.note { font-size: 12.5px; color: var(--sub); text-align: center; margin: 0; }
+.empty { text-align: center; color: var(--sub); padding: 32px 0; }
+button { cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<style>
+.tabs3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tabs3 button { padding: 10px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 600 14px var(--body); }
+.tabs3 button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.search { font: 400 16px var(--body); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group h3 { margin: 6px 2px 0; font-size: 13px; color: var(--sub); font-weight: 600; letter-spacing: .02em; }
+.cand { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.cand > button { width: 100%; text-align: left; background: none; border: 0; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; color: var(--ink); font-family: var(--body); }
+.cand .nm { font-weight: 700; font-size: 16px; }
+.cand .meta { grid-column: 1; color: var(--sub); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cand .rec { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+.chip.warn { background: transparent; border: 1px solid var(--line); color: var(--sub); }
+.chip.req { background: var(--ok-soft); color: var(--ok); }
+.cand .body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cand .memo-note { margin: 0; font-size: 13px; color: var(--sub); }
+.seg { display: flex; gap: 8px; }
+.seg label { flex: 1; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 14px; }
+.seg input { margin: 0; accent-color: var(--accent); }
+.cand textarea { font: 400 16px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 72px; resize: vertical; }
+.warnbox { margin: 0; font-size: 13px; background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+.drow { display: flex; justify-content: space-between; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+.drow > span:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
+.drow .chip { flex: none; }
+.drow > span:last-child { color: var(--sub); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 접힌 카드: 썸네일 + 이름 + 자주 쓰는 버튼(저장·설명 복사·올렸어요)만. 나머지는 펼치면 */
+header { display: flex; align-items: flex-start; gap: 10px; }
+header > div { flex: 1; min-width: 0; }
+.reload { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: 600 13px var(--body); }
+.reload svg { width: 16px; height: 16px; }
+.reload.spin svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.mission { gap: 8px; }
+.meter { padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 6px; }
+.meter b { font-size: 18px; }
+.meter .bar { grid-column: 1 / -1; margin-top: 6px; }
+#list { gap: 10px; }
+.kc { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kc.done { opacity: .55; }
+.kc .top { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; }
+.kc .top img { width: 48px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--line); }
+.kc .ttl { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.kc .ttl b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kc .ttl span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.kc .ttl .chip { padding: 1px 7px; font-size: 11px; }
+.kc .fold { background: none; border: 0; color: var(--sub); font: 600 13px var(--body); padding: 8px 4px; }
+.kc .acts { display: grid; grid-template-columns: 1fr 1fr 52px; gap: 8px; }
+.kc .acts .save, .kc .acts .copy { padding: 11px 6px; font-size: 14.5px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kc .acts .save { border-width: 1.5px; }
+.kc .chk { border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 700 18px var(--body); }
+.kc .chk[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #fff; }
+.kc .detail { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+.kc .strip img { height: 112px; }
+.fold-done { align-self: flex-start; background: none; border: 1px dashed var(--line); border-radius: 999px; color: var(--sub); font: 600 13px var(--body); padding: 6px 12px; }
+</style>
+<main>
+  <header>
+    <div><h1>클립 업로드 키트</h1>
+    <p class="lead" id="lead"></p></div>
+    <button class="reload" id="reload" aria-label="새로고침"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>새로고침</button>
+  </header>
+
+  <section class="mission" aria-label="이번 주 미션">
+    <div class="meter"><span>이번 주 동영상</span><span><b id="mv">0</b> / 6</span><div class="bar"><i id="bv"></i></div></div>
+    <div class="meter"><span>이번 주 게시물</span><span><b id="mp">0</b> / 6</span><div class="bar"><i id="bp"></i></div></div>
+  </section>
+
+  <div class="tabs3" role="group" aria-label="보기">
+    <button id="t-todo" aria-pressed="true">올릴 것 <span id="n-todo"></span></button>
+    <button id="t-make" aria-pressed="false">만들 것 <span id="n-make"></span></button>
+    <button id="t-done" aria-pressed="false">올린 것 <span id="n-done"></span></button>
+  </div>
+
+  <div class="tabs" id="typef" role="group" aria-label="종류">
+    <button data-t="all" aria-pressed="true">전체 <span></span></button>
+    <button data-t="video" aria-pressed="false">동영상 <span></span></button>
+    <button data-t="post" aria-pressed="false">게시물 <span></span></button>
+  </div>
+
+  <!-- 올릴 것 -->
+  <section id="v-todo" class="list">
+    <details>
+      <summary>아이폰에서 올리는 순서</summary>
+      <ol>
+        <li>카드의 <b>사진첩에 저장</b> → 공유 시트에서 <b>이미지 저장</b>(동영상은 <b>비디오 저장</b>)</li>
+        <li><b>설명 복사</b></li>
+        <li>네이버 클립 앱 → 만들기 → 사진첩에서 선택 (게시물은 01부터 순서대로)</li>
+        <li>동영상은 <b>음원 추가</b> → 설명 붙여넣기 → 정보 태그에 장소 태그 → 전체 공개 → 등록</li>
+        <li>여기서 <b>올렸어요</b> → 드라이브에 저장돼서 PC·폰 어디서 봐도 같아요</li>
+      </ol>
+    </details>
+    <div id="list" class="list"></div>
+    <section class="report" id="report">
+      <p id="report-text"></p>
+      <p id="report-sync">구글 드라이브에 저장됐어요. Claude에게 "올렸어"라고만 하면 0_완료로 옮기고 사이트를 갱신해요.</p>
+      <button class="copy" id="report-btn">올린 목록 복사</button>
+    </section>
+  </section>
+
+  <!-- 만들 것 -->
+  <section id="v-make" class="list" hidden>
+    <input class="search" id="q" type="search" placeholder="가게·동네 검색 (예: 미금, 갓잇)" aria-label="후보 검색">
+    <div id="myreq" class="group" hidden></div>
+    <div id="cands" class="list"></div>
+    <p class="note">드라이브 작성완료 폴더 중 아직 클립을 안 만든 곳이에요. 고르고 요청을 보내면 드라이브에 저장되고, Claude에게 "클립 요청 확인해줘"라고 하면 만들어요.</p>
+  </section>
+
+  <!-- 올린 것 -->
+  <section id="v-done" class="list" hidden>
+    <div id="done" class="list"></div>
+  </section>
+
+  <p class="note" id="built"></p>
+</main>
+
+<script>
+const ITEMS = [{"id": "2c5ed61d5c", "name": "20250531 열문집_클립.mp4", "date": "2025.05.31", "store": "열문집", "type": "video", "files": "20250531 열문집_클립.mp4", "tag": "열문집 (서현, 분당구 서현로180번길 19)", "desc": "분당 고깃집 웬만큼 다 가봤는데, 여긴 Top 5에 바로 넣었어요 ㅋㅋ\n\n[분당] 서현역 삼겹살집 열문집 🌼\n\n양념 파채, 대파·오이 피클에 돈카츠 소스랑 치미추리까지 나와서 골라 먹는 재미가 있어요.\n마무리 열문찌개는 맵지도 짜지도 않아서 밥 없이도 계속 떠먹게 돼요.\n\n💡 Tip\n· 작년 기준 삼겹살 1인분 15,000원\n· 리뷰이벤트 1인당 2,000원 할인, 인원수만큼 중복\n· CGV 옆, 주차 가능 · 네이버/캐치테이블 예약\n· 브레이크타임 15~17시\n\n#오늘클립챌린지 #열문집 #서현삼겹살 #서현맛집 #분당구청삼겹살", "chars": 297, "thumbs": ["thumbs/2c5ed61d5c_01.jpg"], "assets": ["files/20250531_2c5ed61d5c.mp4"], "bytes": 19405977}, {"id": "28cc9c701d", "name": "20250727 고향옥순대국_클립.mp4", "date": "2025.07.27", "store": "고향옥순대국", "type": "video", "files": "20250727 고향옥순대국_클립.mp4", "tag": "고향옥얼큰순대국 야탑점", "desc": "혼밥하러 오는 분들이 정말 많던 야탑역 순대국집이에요\n\n[분당] 야탑역 순대국집 고향옥얼큰순대국 야탑점 🌼\n\n진한 사골 베이스라 국물이 묵직하고, 편백보쌈은 잡내 없이 촉촉했어요.\n반찬 5종 중엔 열무김치가 느끼함 잡아주는 데 최고!\n\n💡 Tip\n· 10:00~01:00, 일요일은 22:00 마감 (작년 기준)\n· 기계식 주차 1시간 무료, 승용차·소형 SUV만\n· 반찬은 셀프바에서 리필\n· 성남사랑상품권 사용 가능\n\n#오늘클립챌린지 #고향옥얼큰순대국 #야탑맛집 #야탑역순대국 #야탑혼밥맛집", "chars": 276, "thumbs": ["thumbs/28cc9c701d_01.jpg"], "assets": ["files/20250727_28cc9c701d.mp4"], "bytes": 25173017}, {"id": "b71c7bd904", "name": "20251206 갓잇_클립.mp4", "date": "2025.12.06", "store": "갓잇", "type": "video", "files": "20251206 갓잇_클립.mp4", "tag": "갓잇 강남점", "desc": "강남 한복판에서 갑자기 멕시코 온 기분 느껴보실 분? 🌮\n\n[서울] 신논현역 멕시칸 타코집 갓잇 강남점 🌼\n\n조명 은은하고 테이블 간격도 여유 있어서 얘기하기 편했어요.\nA세트는 둘이 먹기 충분하고, 과카몰리랑 같이 먹는 타코가 제일 잘 어울렸어요. 오렌지에이드는 민트향이 은은해서 상큼!\n\n💡 Tip\n· A세트 39,000원 (작년 방문 기준)\n· 11:00~21:30, 평일 15:00~16:30 브레이크타임\n· 주차 불가라 대중교통 추천, 네이버 예약 가능\n\n#오늘클립챌린지 #갓잇강남점 #신논현맛집 #강남타코맛집 #강남역데이트", "chars": 298, "thumbs": ["thumbs/b71c7bd904_01.jpg"], "assets": ["files/20251206_b71c7bd904.mp4"], "bytes": 18095247}, {"id": "9a7fb49a05", "name": "20251213 봉면옥_클립.mp4", "date": "2025.12.13", "store": "봉면옥", "type": "video", "files": "20251213 봉면옥_클립.mp4", "tag": "봉면옥 (서현먹자골목)", "desc": "넓은 단층에 통창까지.. 칼국수집 맞나 싶었던 곳 ㅋㅋ\n\n[분당] 서현먹자골목 칼국수집 봉면옥 🌼\n\n물총 칼국수는 해감이 잘 돼서 잡내 없이 담백하고, 생들기름 칼국수는 먹을수록 고소함이 깊어져요.\n물총 칼국수는 재방문 확정, 다음엔 굴 메뉴도 먹어볼래요.\n\n💡 Tip\n· 매일 11:00~22:00, 네이버 예약 가능\n· 주차·발렛파킹 돼요\n· 칼국수 2 + 감자전 주말 3.5~4만원대 (작년 기준)\n\n#오늘클립챌린지 #봉면옥 #서현맛집 #서현칼국수 #분당칼국수", "chars": 260, "thumbs": ["thumbs/9a7fb49a05_01.jpg"], "assets": ["files/20251213_9a7fb49a05.mp4"], "bytes": 19911231}, {"id": "3fe2e3014a", "name": "20251228 백소정_클립.mp4", "date": "2025.12.28", "store": "백소정", "type": "video", "files": "20251228 백소정_클립.mp4", "tag": "백소정 미금역점", "desc": "돈카츠 먹으러 갔다가 마제소바에 밥까지 비벼먹고 나왔어요 ㅋㅋ\n\n[분당] 미금역 일식집 백소정 미금역점 🌼\n\n두 번째 방문인데 돈카츠는 여전히 겉바속촉, 소스에 찍어 먹는 게 제일 잘 맞았어요.\n키소카레 에비텐은 타르타르가 요거트처럼 상큼해서 느끼함을 싹 잡아줘요.\n\n💡 Tip\n· 마제소바는 노른자 터뜨려 비비고, 1/3 먹고 다시마식초 뿌리기\n· 미금역에서 가까워서 비 오는 날도 OK\n· 작년 기준 2인 3만원 언더\n\n#오늘클립챌린지 #백소정미금역점 #미금역맛집 #미금역점심 #미금역돈카츠", "chars": 276, "thumbs": ["thumbs/3fe2e3014a_01.jpg"], "assets": ["files/20251228_3fe2e3014a.mp4"], "bytes": 23080405}, {"id": "f4501be43b", "name": "20260718 군침_게시물", "date": "2026.07.18", "store": "군침", "type": "post", "files": "20260718 군침_게시물 폴더 사진 8장", "tag": "군침 (미금역 제주근고기, 동명 업체 주의)", "desc": "두툼한 제주근고기, 굽는 건 직원분이 다 해주셔서 먹기만 했어요\n\n[성남] 미금역 고기집 군침 🌼\n\n오겹살·목살 540g에 계란찜 세트로 시켰어요.\n목살은 숯불 향 은은하고 속은 촉촉, 오겹살은 껍질이 쫀득해요.\n직접 만든다는 멜젓은 짜기보다 감칠맛이랑 매콤함이 있어서 오겹살 찍어 먹으니 맛이 확 살아요.\n\n💡 Tip\n· 김치는 불판에 올려 구워 먹기\n· 목살은 소금·고추냉이, 오겹살은 멜젓이나 쌈장\n· 논알콜맥주도 있어요\n\n#오늘클립챌린지 #군침 #미금역맛집 #미금역고기 #제주근고기", "chars": 273, "thumbs": ["thumbs/f4501be43b_01.jpg", "thumbs/f4501be43b_02.jpg", "thumbs/f4501be43b_03.jpg", "thumbs/f4501be43b_04.jpg", "thumbs/f4501be43b_05.jpg", "thumbs/f4501be43b_06.jpg", "thumbs/f4501be43b_07.jpg", "thumbs/f4501be43b_08.jpg"], "assets": ["files/20260718_f4501be43b_01.jpg", "files/20260718_f4501be43b_02.jpg", "files/20260718_f4501be43b_03.jpg", "files/20260718_f4501be43b_04.jpg", "files/20260718_f4501be43b_05.jpg", "files/20260718_f4501be43b_06.jpg", "files/20260718_f4501be43b_07.jpg", "files/20260718_f4501be43b_08.jpg"], "bytes": 4132450}, {"id": "606ba43c8a", "name": "20260723 전복만복래_게시물", "date": "2026.07.23", "store": "전복만복래", "type": "post", "files": "20260723 전복만복래_게시물 폴더 사진 5장", "tag": "전복만복래 (미금역 구미동)", "desc": "전복뚝배기 시켰는데 전복솥밥까지 따라 나와요\n\n[성남] 미금역 보양식집 전복만복래 🌼\n\n뚝배기째 보글보글 끓어서 나오고, 국물이 안 자극적인데 깊고 시원해요.\n솥밥은 전복 내장 넣고 지어서 초록빛, 위에 전복 한 마리가 통째로 올라가요.\n몸보신 음식인데 비린 맛은 거의 없어요.\n\n💡 Tip\n· 뚝배기·솥밥 둘 다 18,000원, 솥밥까지 나오는 뚝배기가 더 가성비\n· 솥밥은 덜어내고 누룽지까지 꼭\n· 몇 년째 복날마다 찾는 단골집이에요\n\n#오늘클립챌린지 #전복만복래 #미금역맛집 #미금역전복뚝배기 #분당맛집", "chars": 285, "thumbs": ["thumbs/606ba43c8a_01.jpg", "thumbs/606ba43c8a_02.jpg", "thumbs/606ba43c8a_03.jpg", "thumbs/606ba43c8a_04.jpg", "thumbs/606ba43c8a_05.jpg"], "assets": ["files/20260723_606ba43c8a_01.jpg", "files/20260723_606ba43c8a_02.jpg", "files/20260723_606ba43c8a_03.jpg", "files/20260723_606ba43c8a_04.jpg", "files/20260723_606ba43c8a_05.jpg"], "bytes": 2940913}, {"id": "bad139c09f", "name": "20261017 티엔미미_클립_2안.mp4", "date": "2026.10.17", "store": "티엔미미", "type": "video", "files": "20261017 티엔미미_클립_2안.mp4", "tag": "티엔미미 (머큐어 앰배서더 서울 홍대 4층)", "desc": "호텔 중식당에서 세트 두 가지를 섞어 시켜봤어요 🥟\n\n[홍대] 머큐어 앰배서더 홍대 4층 중식당 티엔미미 🌼\n\n가족 생일 파티로 여섯 명이 가서 티엔 세트 3인분 + 미미 세트 3인분을 섞어 주문했어요. 메뉴가 안 겹쳐서 골고루 맛봤어요.\n셰어링 세트는 1인 4만~15만원, 2인 이상부터예요.\n\n💡 Tip\n· 캐치테이블로 예약하고 가세요\n· 1층 입구가 안 보여요. 후문이나 무신사 스탠다드 안쪽 엘리베이터로 4층\n· 브레이크 15~17시, 라스트오더 20시\n\n#오늘클립챌린지 #티엔미미 #홍대딤섬 #홍대중식당 #홍대가족모임", "chars": 294, "thumbs": ["thumbs/bad139c09f_01.jpg"], "assets": ["files/20261017_bad139c09f.mp4"], "bytes": 19204948}];
+const DONE = [{"name": "20260714 홍수회전훠궈_게시물", "store": "홍수회전훠궈", "type": "post", "date": "2026-10-26"}, {"name": "20260419 바다회활어_클립.mp4", "store": "바다회활어", "type": "video", "date": "2026-10-25"}, {"name": "20251129 콘타이_클립.mp4", "store": "콘타이", "type": "video", "date": "2026-10-25"}, {"name": "20261017 구우움베이커리_클립_2안.mp4", "store": "구우움베이커리", "type": "video", "date": "2026-10-25"}, {"name": "20260528 스미스씨네농장_클립.mp4", "store": "스미스씨네농장", "type": "video", "date": "2026-10-25"}, {"name": "20260607 이오_게시물", "store": "이오", "type": "post", "date": "2026-10-25"}, {"name": "20260614 우대포_게시물", "store": "우대포", "type": "post", "date": "2026-10-25"}, {"name": "20260828 뼈에반한감자탕_게시물", "store": "뼈에반한감자탕", "type": "post", "date": "2026-10-25"}, {"name": "20261010 광명역 버거킹_게시물", "store": "광명역 버거킹", "type": "post", "date": "2026-10-25"}, {"name": "20261025 불곡산 대광사_클립.mp4", "store": "불곡산 대광사", "type": "video", "date": "2026-10-25"}, {"name": "20260205 육즙관리소_게시물", "store": "육즙관리소", "type": "post", "date": "2026-10-24"}, {"name": "20260307 강경불고기_게시물", "store": "강경불고기", "type": "post", "date": "2026-10-24"}, {"name": "20260528 이재모피자_게시물", "store": "이재모피자", "type": "post", "date": "2026-10-24"}, {"name": "20260619 강남소관_게시물", "store": "강남소관", "type": "post", "date": "2026-10-24"}, {"name": "20261005 순화옥_게시물", "store": "순화옥", "type": "post", "date": "2026-10-24"}, {"name": "20251226 매드포갈릭_게시물", "store": "매드포갈릭", "type": "post", "date": null}, {"name": "20251226 매드포갈릭_클립.mp4", "store": "매드포갈릭", "type": "video", "date": null}, {"name": "20251231 미송식탁_게시물", "store": "미송식탁", "type": "post", "date": null}, {"name": "20251231 미송식탁_클립.mp4", "store": "미송식탁", "type": "video", "date": null}, {"name": "20260102 군산오징어_게시물", "store": "군산오징어", "type": "post", "date": null}, {"name": "20260102 군산오징어_클립.mp4", "store": "군산오징어", "type": "video", "date": null}, {"name": "20260111 아카리라멘_게시물", "store": "아카리라멘", "type": "post", "date": null}, {"name": "20260111 아카리라멘_클립.mp4", "store": "아카리라멘", "type": "video", "date": null}, {"name": "20260111 오월의곤드레_게시물", "store": "오월의곤드레", "type": "post", "date": null}, {"name": "20260111 오월의곤드레_클립.mp4", "store": "오월의곤드레", "type": "video", "date": null}, {"name": "20260115 김청자매운갈비찜_게시물", "store": "김청자매운갈비찜", "type": "post", "date": null}, {"name": "20260115 김청자매운갈비찜_클립.mp4", "store": "김청자매운갈비찜", "type": "video", "date": null}, {"name": "20260118 영동가든_클립.mp4", "store": "영동가든", "type": "video", "date": null}, {"name": "20260207 꾸우덕_클립.mp4", "store": "꾸우덕", "type": "video", "date": null}, {"name": "20260207 이치류_클립.mp4", "store": "이치류", "type": "video", "date": null}, {"name": "20260315 수애가_클립.mp4", "store": "수애가", "type": "video", "date": null}, {"name": "20260405 훅트포케_게시물", "store": "훅트포케", "type": "post", "date": null}, {"name": "20260405 훅트포케_클립.mp4", "store": "훅트포케", "type": "video", "date": null}, {"name": "20260419 이화루_게시물", "store": "이화루", "type": "post", "date": null}, {"name": "20260419 이화루_클립.mp4", "store": "이화루", "type": "video", "date": null}, {"name": "20260421 동천_게시물", "store": "동천", "type": "post", "date": null}, {"name": "20260421 동천_클립.mp4", "store": "동천", "type": "video", "date": null}, {"name": "20260428 진스키야키_게시물", "store": "진스키야키", "type": "post", "date": null}, {"name": "20260428 진스키야키_클립.mp4", "store": "진스키야키", "type": "video", "date": null}, {"name": "20260501 더맛있는족발_게시물", "store": "더맛있는족발", "type": "post", "date": null}, {"name": "20260501 더맛있는족발_클립.mp4", "store": "더맛있는족발", "type": "video", "date": null}, {"name": "20260603 참치논데_게시물", "store": "참치논데", "type": "post", "date": null}, {"name": "20260603 참치논데_클립.mp4", "store": "참치논데", "type": "video", "date": null}, {"name": "20260710 강호식당_게시물", "store": "강호식당", "type": "post", "date": null}, {"name": "20260710 강호식당_클립.mp4", "store": "강호식당", "type": "video", "date": null}, {"name": "20260717 치킨파머스_게시물", "store": "치킨파머스", "type": "post", "date": null}, {"name": "20260717 치킨파머스_클립.mp4", "store": "치킨파머스", "type": "video", "date": null}, {"name": "20260725 애햄부대찌개_게시물", "store": "애햄부대찌개", "type": "post", "date": null}, {"name": "20260725 애햄부대찌개_클립.mp4", "store": "애햄부대찌개", "type": "video", "date": null}, {"name": "20260822 구름집_게시물", "store": "구름집", "type": "post", "date": null}, {"name": "20260822 구름집_클립.mp4", "store": "구름집", "type": "video", "date": null}, {"name": "20260831 갯바다해물샤브칼국수_게시물", "store": "갯바다해물샤브칼국수", "type": "post", "date": null}, {"name": "20260831 갯바다해물샤브칼국수_클립.mp4", "store": "갯바다해물샤브칼국수", "type": "video", "date": null}, {"name": "20260906 풍천민물장어직판장_게시물", "store": "풍천민물장어직판장", "type": "post", "date": null}, {"name": "20260906 풍천민물장어직판장_클립.mp4", "store": "풍천민물장어직판장", "type": "video", "date": null}, {"name": "20260915 보약족발보쌈_게시물", "store": "보약족발보쌈", "type": "post", "date": null}, {"name": "20260915 보약족발보쌈_클립.mp4", "store": "보약족발보쌈", "type": "video", "date": null}, {"name": "20260919 화돌농장_게시물", "store": "화돌농장", "type": "post", "date": null}, {"name": "20260919 화돌농장_클립.mp4", "store": "화돌농장", "type": "video", "date": null}, {"name": "20261002 데이지익선_클립.mp4", "store": "데이지익선", "type": "video", "date": null}, {"name": "20261002 평가옥_클립.mp4", "store": "평가옥", "type": "video", "date": null}, {"name": "20261003 판교장어사랑_클립.mp4", "store": "판교장어사랑", "type": "video", "date": null}, {"name": "20261017 양평해장국큰아들집_게시물", "store": "양평해장국큰아들집", "type": "post", "date": null}, {"name": "20261017 양평해장국큰아들집_클립.mp4", "store": "양평해장국큰아들집", "type": "video", "date": null}, {"name": "20261017 티엔미미_게시물", "store": "티엔미미", "type": "post", "date": null}];
+const CANDS = [{"id": "4e65b97e", "name": "미금 분당그릴", "store": "분당그릴", "folder": "블로그작성/20261025 미금 분당그릴", "date": "2026.10.25", "vids": 26, "secs": null, "photos": 45, "blog": "", "memo": "", "tier": "최근 올린 폴더", "rec": "post"}, {"id": "1cb915f3", "name": "정자 두향", "store": "두향", "folder": "블로그작성/작성완료/2025/202512/20251206 정자 두향", "date": "2025.12.06", "vids": 6, "secs": 29, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "e65c0f17", "name": "야탑 카미샤브", "store": "카미샤브", "folder": "블로그작성/작성완료/2025/202503/20250316 야탑 카미샤브", "date": "2025.03.16", "vids": 5, "secs": 43, "photos": null, "blog": "223802821437", "memo": "1인 샤브", "tier": "2순위", "rec": "video"}, {"id": "8b8f86ce", "name": "금곡동 구좌리손칼국수", "store": "구좌리손칼국수", "folder": "블로그작성/작성완료/2025/202505/20250525 금곡동 구좌리손칼국수", "date": "2025.05.25", "vids": 5, "secs": 63, "photos": null, "blog": "223880017621", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "e7129a70", "name": "제주 돈해상", "store": "돈해상", "folder": "블로그작성/작성완료/2025/202506/20250613 제주 돈해상", "date": "2025.06.13", "vids": 5, "secs": 46, "photos": null, "blog": "223900313780", "memo": "협재 바다뷰 흑돼지", "tier": "2순위", "rec": "video"}, {"id": "835b25fc", "name": "수내미소집", "store": "수내미소집", "folder": "블로그작성/작성완료/2025/202509/20250914 수내미소집", "date": "2025.09.14", "vids": 5, "secs": 44, "photos": null, "blog": "224007864248", "memo": "돼지갈비찜", "tier": "2순위", "rec": "video"}, {"id": "9570f153", "name": "판교 훅드포케", "store": "훅드포케", "folder": "블로그작성/작성완료/2025/202508/20250817 판교 훅드포케", "date": "2025.08.17", "vids": 5, "secs": 57, "photos": null, "blog": "223974991878", "memo": "정자점 클립 완료라 중복감. 후순위", "tier": "2순위", "rec": "video"}, {"id": "540b1052", "name": "서현 사위식당", "store": "사위식당", "folder": "블로그작성/작성완료/2025/202501/20250105 서현 사위식당", "date": "2025.01.05", "vids": 5, "secs": null, "photos": null, "blog": "223717625180", "memo": "낙곱새. 두 폴더 합쳐서 쓰기", "tier": "2순위", "rec": "post"}, {"id": "1418ab07", "name": "양재 미친양꼬치", "store": "미친양꼬치", "folder": "블로그작성/작성완료/2025/202505/20250509 양재 미친양꼬치", "date": "2025.05.09", "vids": 4, "secs": 42, "photos": null, "blog": "223861904726", "memo": "무한리필", "tier": "2순위", "rec": "video"}, {"id": "adc845d9", "name": "서현 헤비스테이크", "store": "헤비스테이크", "folder": "블로그작성/작성완료/2025/202511/20251123 서현 헤비스테이크", "date": "2025.11.23", "vids": 4, "secs": 35, "photos": null, "blog": "224087986058", "memo": "파워함박세트", "tier": "2순위", "rec": "video"}, {"id": "16f032ce", "name": "정자 분당동치미막국수", "store": "분당동치미막국수", "folder": "블로그작성/작성완료/2025/202507/20250713 정자 분당동치미막국수", "date": "2025.07.13", "vids": 4, "secs": 40, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "98d88453", "name": "정자우본관", "store": "정자우본관", "folder": "블로그작성/작성완료/2025/202510/20251107 정자우본관", "date": "2025.11.07", "vids": 4, "secs": 32, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "c03924e3", "name": "전주 자매갈비전골", "store": "자매갈비전골", "folder": "블로그작성/작성완료/2025/202508/20250810_12 전주 자매갈비전골", "date": "2025.08.10", "vids": 4, "secs": 25, "photos": null, "blog": "223973282603", "memo": "런닝맨 물갈비", "tier": "2순위", "rec": "video"}, {"id": "9d9041ef", "name": "정자 할머니의부뚜막", "store": "할머니의부뚜막", "folder": "블로그작성/작성완료/2025/202501/20250105 정자 할머니의부뚜막", "date": "2025.01.05", "vids": 4, "secs": 21, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "87785226", "name": "미금 이수사", "store": "이수사", "folder": "블로그작성/작성완료/2025/202505/20250517 미금 이수사", "date": "2025.05.17", "vids": 3, "secs": 54, "photos": null, "blog": "223869934022", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "62582be0", "name": "양재 아웃백", "store": "아웃백", "folder": "블로그작성/작성완료/2025/202512/202512115 양재 아웃백", "date": "2025.12.11", "vids": 3, "secs": 32, "photos": null, "blog": "224117368794", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "f5c100d1", "name": "전주 풍남정", "store": "풍남정", "folder": "블로그작성/작성완료/2025/202508/20250811_1 전주 풍남정_식당리뷰", "date": "2025.08.11", "vids": 3, "secs": 32, "photos": null, "blog": "223968496066", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "5895c659", "name": "미금 경성면옥", "store": "경성면옥", "folder": "", "date": "", "vids": 3, "secs": 30, "photos": null, "blog": "224062069364", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "7438763b", "name": "수지구청 계림원", "store": "계림원", "folder": "블로그작성/작성완료/2025/202506/20250621 수지구청 계림원", "date": "2025.06.21", "vids": 3, "secs": 25, "photos": null, "blog": "223911652963", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "7de692a0", "name": "야탑 사계진미", "store": "사계진미", "folder": "블로그작성/작성완료/2025/202507/20250726 야탑 사계진미", "date": "2025.07.26", "vids": 3, "secs": 21, "photos": null, "blog": "223948285575", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "0bfd457d", "name": "야탑 벤탄빌라", "store": "벤탄빌라", "folder": "블로그작성/작성완료/2025/202510/20251026 야탑 벤탄빌라", "date": "2025.10.26", "vids": 3, "secs": 19, "photos": null, "blog": "224056278083", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "753b7fc4", "name": "야탑 자주오리", "store": "자주오리", "folder": "블로그작성/작성완료/2025/202503/20250303 야탑 자주오리", "date": "2025.03.03", "vids": 3, "secs": 17, "photos": null, "blog": "223782282540", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "d58072ab", "name": "미금 하치로돈부리", "store": "하치로돈부리", "folder": "", "date": "", "vids": 3, "secs": 14, "photos": null, "blog": "224084497415", "memo": "", "tier": "2순위", "rec": "post"}, {"id": "3311c830", "name": "서현 삼동소바", "store": "삼동소바", "folder": "블로그작성/작성완료/2024/202409/20240929 서현 삼동소바", "date": "2024.09.29", "vids": 18, "secs": 121, "photos": null, "blog": "223601150875", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "b130af29", "name": "판교 대감집", "store": "대감집", "folder": "블로그작성/작성완료/2024/202409/20240928 판교 대감집", "date": "2024.09.28", "vids": 13, "secs": 108, "photos": null, "blog": "223600049975", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "bd5fb3e6", "name": "서현 고쿠텐", "store": "고쿠텐", "folder": "블로그작성/작성완료/2024/202410/20240929 서현 고쿠텐", "date": "2024.09.29", "vids": 12, "secs": 80, "photos": null, "blog": "223602916672", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "5a3fe167", "name": "약수 마포우사미", "store": "마포우사미", "folder": "블로그작성/작성완료/2024/202410/20241019 약수 마포우사미", "date": "2024.10.19", "vids": 10, "secs": 177, "photos": null, "blog": "223626348771", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "be8a8d6b", "name": "서현 옥소반", "store": "옥소반", "folder": "블로그작성/작성완료/2024/202408/20240812 서현 옥소반", "date": "2024.08.12", "vids": 9, "secs": 239, "photos": null, "blog": "223545920376", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "a11bff7a", "name": "경희보궁", "store": "경희보궁", "folder": "블로그작성/작성완료/2024/202411/20241103 경희보궁", "date": "2024.11.03", "vids": 7, "secs": 45, "photos": null, "blog": "223645362059", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "68683a79", "name": "미금 옥된장", "store": "옥된장", "folder": "블로그작성/작성완료/2024/202410/20241022 미금 옥된장", "date": "2024.10.22", "vids": 7, "secs": 49, "photos": null, "blog": "223630869283", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "4f74061f", "name": "위례 담솥", "store": "담솥", "folder": "블로그작성/작성완료/2024/202410/20241026 위례 담솥", "date": "2024.10.26", "vids": 7, "secs": 70, "photos": null, "blog": "223634842011", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "84b62059", "name": "서현 곱창에빠지다", "store": "곱창에빠지다", "folder": "블로그작성/작성완료/2024/202410/20241018 서현 곱창에빠지다", "date": "2024.10.18", "vids": 7, "secs": 51, "photos": null, "blog": "223625607442", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "50198100", "name": "경주 오짱", "store": "오짱", "folder": "블로그작성/작성완료/2024/202411/20241121 경주 오짱", "date": "2024.11.21", "vids": 7, "secs": 44, "photos": null, "blog": "223671118362", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "0821ca87", "name": "야탑 화화갈비", "store": "화화갈비", "folder": "블로그작성/작성완료/2024/202410/20241026 야탑 화화갈비", "date": "2024.10.26", "vids": 6, "secs": 124, "photos": null, "blog": "223635322510", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "70484864", "name": "야탑 계림닭도리탕", "store": "계림닭도리탕", "folder": "블로그작성/작성완료/2024/202411/20241013 야탑 계림닭도리탕", "date": "2024.10.13", "vids": 6, "secs": 25, "photos": null, "blog": "223650121968", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "fefd49de", "name": "야탑 비스트로올", "store": "비스트로올", "folder": "블로그작성/작성완료/2024/202404/20240427 야탑 비스트로올", "date": "2024.04.27", "vids": 6, "secs": 66, "photos": null, "blog": "223428954788", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "b0228f99", "name": "서래마을 포폴라리타", "store": "포폴라리타", "folder": "블로그작성/작성완료/2024/202412/20241207 서래마을 포폴라리타", "date": "2024.12.07", "vids": 6, "secs": null, "photos": null, "blog": "223686667730", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "e8434beb", "name": "미금황소곱창", "store": "미금황소곱창", "folder": "블로그작성/작성완료/2024/202403/20230313 미금황소곱창", "date": "2023.03.13", "vids": 6, "secs": null, "photos": null, "blog": "223386361742", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "3c3c5c18", "name": "미금 골목집", "store": "골목집", "folder": "블로그작성/작성완료/2024/202405/20240519 미금 골목집", "date": "2024.05.19", "vids": 5, "secs": null, "photos": null, "blog": "223453086217", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "00db1db5", "name": "피자베이비베이커스", "store": "피자베이비베이커스", "folder": "블로그작성/작성완료/2024/202411/20241108 서현 피자베이비베이커스", "date": "2024.11.08", "vids": 5, "secs": null, "photos": null, "blog": "223654938152", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "1c300880", "name": "수내 밀리언초밥", "store": "밀리언초밥", "folder": "블로그작성/작성완료/2024/202411/20241116 수내 밀리언초밥", "date": "2024.11.16", "vids": 5, "secs": null, "photos": null, "blog": "223664209143", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "efbc1bca", "name": "야탑 배밭갈비", "store": "배밭갈비", "folder": "블로그작성/작성완료/2024/202409/20240909 야탑 배밭갈비", "date": "2024.09.09", "vids": 5, "secs": null, "photos": null, "blog": "223582162873", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "95bb8a8a", "name": "신논현 닭갈비전", "store": "닭갈비전", "folder": "블로그작성/작성완료/2024/202410/20241025 신논현 닭갈비전", "date": "2024.10.25", "vids": 5, "secs": null, "photos": null, "blog": "223634684386", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "f11757d7", "name": "판교 오레노카츠", "store": "오레노카츠", "folder": "블로그작성/작성완료/2024/202409/20240921 판교 오레노카츠", "date": "2024.09.21", "vids": 5, "secs": null, "photos": null, "blog": "223592200178", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "f37078d0", "name": "경주 그때그소간지", "store": "그때그소간지", "folder": "블로그작성/작성완료/2024/202411/20241122 경주 그때그소간지", "date": "2024.11.22", "vids": 5, "secs": null, "photos": null, "blog": "223671276038", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "c82b6515", "name": "구미동 철이네포차", "store": "철이네포차", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "223694448819", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "ad9d5fc3", "name": "두부상회", "store": "두부상회", "folder": "블로그작성/작성완료/2024/202403/20240324 두부상회 체험단", "date": "2024.03.24", "vids": 5, "secs": null, "photos": null, "blog": "223400929809", "memo": "비추천 (가로 영상 많음)", "tier": "3순위", "rec": "post"}, {"id": "721194f5", "name": "판교 엘리팝", "store": "엘리팝", "folder": "블로그작성/작성완료/2024/202405/20240506 판교 엘리팝", "date": "2024.05.06", "vids": 4, "secs": null, "photos": null, "blog": "223444604835", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "871c4560", "name": "수내 주막골포장마차", "store": "주막골포장마차", "folder": "블로그작성/작성완료/2024/202408/20240827 수내 주막골포장마차", "date": "2024.08.27", "vids": 4, "secs": null, "photos": null, "blog": "223568297184", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "d4e3707e", "name": "미금 행하령수제비", "store": "행하령수제비", "folder": "블로그작성/작성완료/2024/202408/20240831 미금 행하령수제비", "date": "2024.08.31", "vids": 4, "secs": null, "photos": null, "blog": "223568375811", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "cb290acc", "name": "서초 브라이언스버거", "store": "브라이언스버거", "folder": "블로그작성/작성완료/2024/202408/20240815 서초 브라이언스버거", "date": "2024.08.15", "vids": 4, "secs": null, "photos": null, "blog": "223549263802", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "ddbfd7f1", "name": "서현 틈", "store": "틈", "folder": "블로그작성/작성완료/2024/202410/20241011 서현 틈", "date": "2024.10.11", "vids": 4, "secs": null, "photos": null, "blog": "223617536092", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "a50696a6", "name": "양재 미몽", "store": "미몽", "folder": "블로그작성/작성완료/2024/202410/20241012 양재 미몽", "date": "2024.10.12", "vids": 4, "secs": null, "photos": null, "blog": "223619050989", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "178a490f", "name": "미금 샐러디", "store": "샐러디", "folder": "블로그작성/작성완료/2024/202404/20240407 미금 샐러디", "date": "2024.04.07", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "cdb8d272", "name": "강남 봉우화로", "store": "봉우화로", "folder": "블로그작성/작성완료/2024/202403/20240323 강남 봉우화로", "date": "2024.03.23", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "923417e7", "name": "판교 미술이자카야", "store": "미술이자카야", "folder": "블로그작성/작성완료/2024/202407/20240727 판교 미술이자카야", "date": "2024.07.27", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "463069ef", "name": "속초 산호횟집", "store": "산호횟집", "folder": "블로그작성/작성완료/2024/202406/20240614 속초 산호횟집", "date": "2024.06.14", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "88834c46", "name": "광화문 베이징코야", "store": "베이징코야", "folder": "블로그작성/작성완료/2024/202406/20240601 광화문 베이징코야", "date": "2024.06.01", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "453648e6", "name": "미금 일로집", "store": "일로집", "folder": "블로그작성/작성완료/2024/202408/20240810 미금 일로집", "date": "2024.08.10", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "65358127", "name": "삼송 라브리크", "store": "라브리크", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "2a46ac41", "name": "광화문 고우가", "store": "고우가", "folder": "블로그작성/작성완료/2024/202411/20241102 광화문 고우가", "date": "2024.11.02", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "ebf94ac1", "name": "서대문 디히채", "store": "디히채", "folder": "블로그작성/작성완료/2024/202412/20241225 서대문 디히채", "date": "2024.12.25", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "6246ecb5", "name": "고터 루브르바게트", "store": "루브르바게트", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "224421420675", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "d50cf645", "name": "나무사이로 석운", "store": "석운", "folder": "블로그작성/작성완료/20260906 나무사이로 석운", "date": "2026.09.06", "vids": 4, "secs": null, "photos": null, "blog": "224415170881", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "af4e916f", "name": "판교 치플레", "store": "치플레", "folder": "블로그작성/작성완료/202601/20260121 판교 치플레", "date": "2026.01.21", "vids": 3, "secs": null, "photos": null, "blog": "224158155901", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "d7db241a", "name": "서현 가비양", "store": "가비양", "folder": "블로그작성/작성완료/2024/202406/20240608 서현 가비양", "date": "2024.06.08", "vids": 7, "secs": null, "photos": null, "blog": "223474083803", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "c6ada222", "name": "경주 백운당", "store": "백운당", "folder": "블로그작성/작성완료/2024/202411/20241122 경주 백운당제빵소", "date": "2024.11.22", "vids": 12, "secs": null, "photos": null, "blog": "223671150795", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "1cc2b22e", "name": "경기광주 오라운트", "store": "오라운트", "folder": "", "date": "", "vids": 4, "secs": null, "photos": null, "blog": "223520668749", "memo": "", "tier": "카페·베이커리", "rec": "post"}];
+const BUILT = "2026.10.26 20:42";
+const STATE_URL = "https://script.google.com/macros/s/AKfycbwnUdKsjcl5rJDw6oWcgf9b8ydPycpAw5Jk7QYjg8Y6TLe_JZUYbRCIR_HWXq7mYvhY/exec";   // 구글 드라이브 '클립키트_상태.json'을 읽고 쓰는 Apps Script 웹앱 (비면 동기화 없음)
+const KEY = "clipkit.uploaded";
+let marks = {};      // 동기화가 없을 때만 쓰는 이 기기 임시 표시
+let sync = null;     // 드라이브 상태 {uploaded: {항목명: {at,type,store}}, requests: [...]}
+let syncNote = "";
+let syncing = false;
+const draft = {};   // 후보별 입력 중인 값 {fmt, style, memo} — 동기화로 다시 그려도 유지
+let view = (() => { try { return localStorage.getItem("clipkit.view") || "todo"; } catch (_) { return "todo"; } })();
+let openCand = null;
+const $ = (id) => document.getElementById(id);
+
+/* ---------- 드라이브 동기화 ---------- */
+// 열쇠는 처음 한 번 '주소#k=열쇠'로 열면 이 기기에 저장된다 (사이트 소스에는 넣지 않는다).
+function syncKey() {
+  const m = location.hash.match(/k=([\w-]+)/);
+  if (m) { try { localStorage.setItem("clipkit.key", m[1]); } catch (_) {} history.replaceState(null, "", location.pathname); return m[1]; }
+  try { return localStorage.getItem("clipkit.key") || ""; } catch (_) { return ""; }
+}
+const SKEY = STATE_URL.startsWith("http") ? syncKey() : "";
+
+async function syncCall(body) {
+  const r = body
+    ? await fetch(STATE_URL, { method: "POST", body: JSON.stringify({ k: SKEY, ...body }) })   // text/plain → preflight 없음
+    : await fetch(`${STATE_URL}?k=${encodeURIComponent(SKEY)}`);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  j.uploaded = j.uploaded || {}; j.requests = j.requests || [];
+  try { localStorage.setItem("clipkit.state", JSON.stringify(j)); } catch (_) {}   // 다음에 열 때 바로 보여줄 마지막 상태
+  return j;
+}
+function stamp() { return new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }); }
+
+function isUp(it) { return sync ? !!sync.uploaded[it.name] : !!marks[it.id]; }
+function upAt(it) { return sync ? sync.uploaded[it.name]?.at : marks[it.id]?.at; }
+
+async function toggle(it) {
+  if (!sync) {
+    if (marks[it.id]) delete marks[it.id]; else marks[it.id] = { at: new Date().toISOString() };
+    saveMarks(); render(); return;
+  }
+  const was = sync.uploaded[it.name];
+  if (was) delete sync.uploaded[it.name]; else sync.uploaded[it.name] = { at: new Date().toISOString(), type: it.type, store: it.store };
+  render();
+  try {
+    sync = await syncCall(was ? { op: "unmark", name: it.name } : { op: "mark", name: it.name, type: it.type, store: it.store });
+    syncNote = `드라이브에 저장됨 ${stamp()}`;
+  } catch (e) {
+    if (was) sync.uploaded[it.name] = was; else delete sync.uploaded[it.name];
+    syncNote = "드라이브에 저장하지 못했어요. 다시 눌러 주세요.";
+  }
+  render();
+}
+
+function loadMarks() {
+  try { marks = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (_) { marks = {}; }
+  for (const id of Object.keys(marks)) if (!ITEMS.some(i => i.id === id)) delete marks[id];   // 이미 정리된 항목은 버린다
+  saveMarks();
+}
+function saveMarks() { try { localStorage.setItem(KEY, JSON.stringify(marks)); } catch (_) {} }
+
+function weekStart() {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));   // 월요일 시작
+  return d;
+}
+
+async function copy(text, btn, label) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "-1000px"; document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    try { ok = document.execCommand("copy"); } catch (_) {} ta.remove();
+  }
+  btn.textContent = ok ? "복사됨" : "복사 실패"; btn.classList.add("ok");
+  setTimeout(() => { btn.textContent = label; btn.classList.remove("ok"); }, 1600);
+}
+
+const mb = (b) => (b / 1048576).toFixed(b > 10485760 ? 0 : 1) + "MB";
+
+async function saveToPhotos(it, btn, label, slot) {
+  // iOS Safari: 공유 시트에 파일을 넘기면 '이미지 저장'/'비디오 저장'으로 사진첩에 들어간다. 안 되면 파일 링크를 펼친다.
+  btn.disabled = true;
+  try {
+    const files = [];
+    for (let i = 0; i < it.assets.length; i++) {
+      btn.textContent = `받는 중 ${i + 1}/${it.assets.length}…`;
+      const r = await fetch(it.assets[i]);
+      if (!r.ok) throw new Error("fetch " + r.status);
+      const blob = await r.blob();
+      const name = it.assets[i].split("/").pop();
+      files.push(new File([blob], name, { type: name.endsWith(".mp4") ? "video/mp4" : "image/jpeg" }));
+    }
+    if (navigator.canShare && navigator.canShare({ files })) {
+      btn.textContent = "공유 시트에서 저장을 누르세요";
+      await navigator.share({ files, title: it.store });
+      btn.textContent = "저장했어요"; btn.classList.add("ok");
+    } else {
+      showLinks(it, slot);
+      btn.textContent = "아래 링크로 저장";
+    }
+  } catch (e) {
+    if (e && e.name === "AbortError") btn.textContent = label;
+    else { showLinks(it, slot); btn.textContent = "아래 링크로 저장"; }
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { if (!btn.classList.contains("ok")) btn.textContent = label; btn.classList.remove("ok"); }, 4000);
+  }
+}
+
+function showLinks(it, slot) {
+  slot.hidden = false;
+  slot.replaceChildren(...it.assets.map((a, i) =>
+    el("a", { href: a, target: "_blank", rel: "noopener", download: a.split("/").pop() }, it.type === "video" ? "동영상 열기" : `${i + 1}번`)));
+}
+
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids) if (k != null && k !== false) n.append(k);
+  return n;
+}
+
+
+/* ---------- 올릴 것 ---------- */
+const openCards = new Set();   // 펼친 카드 (다시 그려도 유지)
+function card(it) {
+  const mark = isUp(it);
+  const isOpen = openCards.has(it.id);
+  const slot = el("div", { class: "links", hidden: true });
+  const saveLabel = it.type === "video" ? `저장 ${mb(it.bytes)}` : `사진 ${it.assets.length}장 저장`;
+  const saveBtn = el("button", { class: "save", onclick: () => saveToPhotos(it, saveBtn, saveLabel, slot) }, saveLabel);
+  const copyBtn = el("button", { class: "copy", onclick: () => copy(it.desc, copyBtn, "설명 복사") }, "설명 복사");
+  const chk = el("button", { class: "chk", "aria-pressed": mark ? "true" : "false", "aria-label": mark ? "올림 취소" : "올렸어요", title: mark ? "올림 취소" : "올렸어요", onclick: () => toggle(it) }, "✓");
+  const fold = el("button", { class: "fold", "aria-expanded": isOpen ? "true" : "false", onclick: () => { if (isOpen) openCards.delete(it.id); else openCards.add(it.id); render(); } }, isOpen ? "접기 ▴" : "자세히 ▾");
+  const top = el("div", { class: "top" },
+    el("img", { src: it.thumbs[0], alt: "", loading: "lazy" }),
+    el("div", { class: "ttl" }, el("b", {}, it.store),
+      el("span", {}, el("span", { class: "chip" }, it.type === "video" ? "동영상" : "게시물"), mark ? "올림 표시함" : it.date)),
+    fold);
+  const acts = el("div", { class: "acts" }, saveBtn, copyBtn, chk);
+  if (!isOpen) return el("article", { class: "kc" + (mark ? " done" : "") }, top, acts, slot);
+
+  const tagBtn = el("button", { class: "mini", onclick: () => copy(it.tag.split(" (")[0], tagBtn, "복사") }, "복사");
+  const steps = it.type === "video"
+    ? ["영상 선택", "음원 추가", "설명 붙여넣기", "장소 태그", "전체 공개"]
+    : ["사진 01부터 선택", "설명 붙여넣기", "장소 태그", "전체 공개"];
+  return el("article", { class: "kc" + (mark ? " done" : "") }, top, acts, slot,
+    el("div", { class: "detail" },
+      el("div", { class: "strip" }, ...it.thumbs.map((src, i) => el("img", { src, alt: `${it.store} ${i + 1}번`, loading: "lazy" }))),
+      el("div", { class: "row" }, el("dt", {}, "장소 태그"), el("dd", {}, it.tag), tagBtn),
+      el("pre", { class: "desc open" }, it.desc || "(설명 파일이 없어요)"),
+      el("p", { class: "note", style: "text-align:left" }, `설명 ${it.chars}자 · ${it.type === "video" ? mb(it.bytes) : `사진 ${it.assets.length}장`}`),
+      el("ul", { class: "steps" }, ...steps.map(st => el("li", { class: st === "음원 추가" ? "key" : "" }, st)))));
+}
+
+function reportText() {
+  const picked = ITEMS.filter(isUp);
+  return "클립 올렸어:\n" + picked.map(i => `- ${i.name} (${new Date(upAt(i)).toLocaleDateString("ko-KR")})`).join("\n");
+}
+
+/* ---------- 만들 것 ---------- */
+function candRow(c) {
+  const isOpen = openCand === c.id;
+  const req = sync && sync.requests.find(r => r.name === c.name && r.status !== "done");
+  const isReq = !!req;
+  const meta = [c.date, c.vids ? `영상 ${c.vids}개${c.secs ? " " + c.secs + "초" : ""}` : "영상 없음",
+    c.photos != null ? `사진 ${c.photos}장` : null, c.blog ? "블로그 ✓" : "블로그 확인 필요"].filter(Boolean).join(" · ");
+  const head = el("button", { "aria-expanded": isOpen ? "true" : "false", onclick: () => { openCand = isOpen ? null : c.id; renderMake(); } },
+    el("span", { class: "nm" }, c.name),
+    el("span", { class: "rec" }, isReq ? el("span", { class: "chip req" }, STATUS[req.status] || "요청됨")
+      : el("span", { class: "chip" + (c.blog ? "" : " warn") }, c.rec === "video" ? "동영상 추천" : "게시물 추천")),
+    el("span", { class: "meta" }, meta));
+  if (!isOpen) return el("div", { class: "cand" }, head);
+
+  const fid = "f-" + c.id, sid = "s-" + c.id;
+  const d = draft[c.id] = draft[c.id] || { fmt: c.rec === "video" ? "video" : "post", style: "1안", memo: "" };
+  const memo = el("textarea", { id: "m-" + c.id, placeholder: "원고·메모 (선택): 꼭 넣을 장면, 자막에 쓸 말, 빼야 할 사진",
+    oninput: () => { d.memo = memo.value; } });
+  memo.value = d.memo;
+  const fmt = () => document.querySelector(`input[name="${fid}"]:checked`).value;
+  const styleSeg = el("div", { class: "seg" },
+    el("label", {}, el("input", { type: "radio", name: sid, value: "1안", checked: d.style === "1안", onchange: () => { d.style = "1안"; } }), "1안 (기본)"),
+    el("label", {}, el("input", { type: "radio", name: sid, value: "2안", checked: d.style === "2안", onchange: () => { d.style = "2안"; } }), "2안 (클로즈업)"));
+  const fmtSeg = el("div", { class: "seg" },
+    el("label", {}, el("input", { type: "radio", name: fid, value: "video", checked: d.fmt === "video", onchange: () => { d.fmt = "video"; styleSeg.hidden = false; } }), "동영상"),
+    el("label", {}, el("input", { type: "radio", name: fid, value: "post", checked: d.fmt === "post", onchange: () => { d.fmt = "post"; styleSeg.hidden = true; } }), "게시물"));
+  styleSeg.hidden = d.fmt !== "video";
+  const text = () => {
+    const f = fmt();
+    const style = document.querySelector(`input[name="${sid}"]:checked`).value;
+    return [`${f === "video" ? "동영상 클립" : "게시물"} 만들어줘: ${c.name}`,
+      `- 드라이브: ${c.folder || "폴더 확인 필요"}`,
+      c.blog ? `- 블로그: https://blog.naver.com/safecapsul/${c.blog}` : "- 블로그: 확인 필요",
+      f === "video" && `- 편집: ${style}`,
+      memo.value.trim() && `- 원고/메모:\n${memo.value.trim()}`].filter(Boolean).join("\n");
+  };
+  const send = el("button", { class: "gh", onclick: async () => {
+    send.disabled = true; send.textContent = "보내는 중…";
+    try {
+      sync = await syncCall({ op: "request", req: { name: c.name, folder: c.folder, blog: c.blog, type: fmt(),
+        style: fmt() === "video" ? document.querySelector(`input[name="${sid}"]:checked`).value : "", memo: memo.value.trim(), text: text() } });
+      syncNote = `요청 저장됨 ${stamp()}`; delete draft[c.id]; openCand = null; render();
+    } catch (e) { send.disabled = false; send.textContent = "저장 실패 — 다시 누르기"; }
+  } }, isReq ? "한 번 더 요청하기" : "요청 보내기");
+  const cp = el("button", { class: "copy", onclick: () => copy(text(), cp, "요청 복사 (Claude에 붙여넣기)") }, "요청 복사 (Claude에 붙여넣기)");
+  return el("div", { class: "cand" }, head,
+    el("div", { class: "body" },
+      c.memo && el("p", { class: "memo-note" }, c.memo),
+      !c.blog && el("p", { class: "warnbox" }, "블로그 글을 못 찾았어요. 자막·설명은 블로그 사실만 쓰니, 발행된 글이 있으면 메모에 링크를 적어주세요."),
+      fmtSeg, styleSeg, memo, sync ? send : cp));
+}
+
+const STATUS = { new: "요청됨", making: "만드는 중", done: "완료" };
+function renderMyReq() {
+  const box = $("myreq");
+  const list = sync ? [...sync.requests].sort((a, b) => b.at.localeCompare(a.at)) : [];
+  box.hidden = !list.length;
+  if (!list.length) return;
+  const active = list.filter(r => r.status !== "done"), done = list.filter(r => r.status === "done");
+  const doneBtn = done.length && el("button", { class: "fold-done", "aria-expanded": showDoneReq ? "true" : "false", onclick: () => {
+    showDoneReq = !showDoneReq; try { localStorage.setItem("clipkit.doneReq", showDoneReq ? "1" : ""); } catch (_) {} renderMyReq();
+  } }, showDoneReq ? `완료 ${done.length}개 접기 ▴` : `완료 ${done.length}개 보기 ▾`);
+  box.replaceChildren(el("h3", {}, `내 요청 ${active.length ? `진행 중 ${active.length}` : "진행 중인 요청 없음"}`),
+    ...active.map(reqRow), doneBtn, ...(showDoneReq ? done.map(reqRow) : []));
+}
+let showDoneReq = (() => { try { return !!localStorage.getItem("clipkit.doneReq"); } catch (_) { return false; } })();
+function reqRow(r) {
+  {
+    const cancel = r.status === "new" && el("button", { class: "mini", onclick: async () => {
+      cancel.disabled = true; cancel.textContent = "취소 중…";
+      try { sync = await syncCall({ op: "cancel", id: r.id }); syncNote = `요청 취소됨 ${stamp()}`; render(); }
+      catch (e) { cancel.disabled = false; cancel.textContent = "취소 실패"; }
+    } }, "취소");
+    return el("div", { class: "drow" },
+      el("span", {}, el("span", { class: "chip" + (r.status === "done" ? "" : " req") }, STATUS[r.status] || r.status), " ",
+        `${r.name} · ${r.type === "video" ? "동영상 " + (r.style || "") : "게시물"}`, r.note ? ` · ${r.note}` : ""),
+      cancel || el("span", {}, new Date(r.at).toLocaleDateString("ko-KR")));
+  }
+}
+
+function renderMake() {
+  renderMyReq();
+  const q = $("q").value.trim().replace(/\s/g, "");
+  const list = CANDS.filter(c => !q || (c.name + c.folder).replace(/\s/g, "").includes(q));
+  const groups = [...new Set(list.map(c => c.tier))];
+  $("cands").replaceChildren(...(list.length ? groups.map(g => el("div", { class: "group" },
+    el("h3", {}, g), ...list.filter(c => c.tier === g).map(candRow)))
+    : [el("p", { class: "empty" }, "검색 결과가 없어요.")]));
+}
+
+/* ---------- 공통 ---------- */
+let typeF = "all";
+try { typeF = localStorage.getItem("clipkit.type") || "all"; } catch (_) {}
+const byType = (arr) => typeF === "all" ? arr : arr.filter(d => d.type === typeF);
+function renderTypeF(arr) {
+  $("typef").hidden = view === "make";
+  for (const b of $("typef").querySelectorAll("button")) {
+    const t = b.dataset.t;
+    b.setAttribute("aria-pressed", typeF === t);
+    b.querySelector("span").textContent = t === "all" ? arr.length : arr.filter(d => d.type === t).length;
+  }
+}
+function render() {
+  const todo = byType(ITEMS);
+  $("n-todo").textContent = ITEMS.length; $("n-make").textContent = CANDS.length; $("n-done").textContent = DONE.length;
+  for (const v of ["todo", "make", "done"]) { $("t-" + v).setAttribute("aria-pressed", view === v); $("v-" + v).hidden = view !== v; }
+  $("list").replaceChildren(...(todo.length ? todo.map(card) : [el("p", { class: "empty" }, ITEMS.length ? "이 종류는 올릴 게 없어요." : "올릴 게 없어요. '만들 것'에서 다음 클립을 요청하세요.")]));
+  const picked = ITEMS.filter(isUp);
+  $("report").hidden = !picked.length;
+  $("report-text").textContent = `올림 표시 ${picked.length}개: ` + picked.map(i => i.store).join(", ");
+  $("report-btn").hidden = !!sync;
+  $("report-sync").hidden = !sync;
+
+  // 올린 것 = 빌드 때 넣은 로그 + 드라이브에 막 표시된 것 (같은 항목은 한 번만)
+  const logged = new Set(DONE.map(d => d.name));
+  const fresh = sync ? Object.entries(sync.uploaded).filter(([n]) => !logged.has(n)).map(([name, r]) => ({ name, store: r.store, type: r.type, date: r.at.slice(0, 10) }))
+    : ITEMS.filter(i => marks[i.id]).map(i => ({ name: i.name, store: i.store, type: i.type, date: marks[i.id].at.slice(0, 10) }));
+  const all = [...fresh, ...DONE];
+  const ws = weekStart();
+  const week = (t) => all.filter(d => d.type === t && d.date && new Date(d.date + "T00:00:00") >= ws).length;
+  const v = week("video"), p = week("post");
+  $("mv").textContent = v; $("mp").textContent = p;
+  $("bv").style.width = Math.min(100, v / 6 * 100) + "%"; $("bp").style.width = Math.min(100, p / 6 * 100) + "%";
+  $("lead").textContent = `올릴 것 ${ITEMS.filter(i => !isUp(i)).length}개 · 만들 후보 ${CANDS.length}곳`;
+  $("n-done").textContent = all.length;
+
+  renderTypeF(view === "done" ? all : ITEMS);
+  const shown = byType(all);
+  $("done").replaceChildren(...(shown.length ? shown.map(d => el("div", { class: "drow" },
+    el("span", {}, `${d.type === "video" ? "동영상" : "게시물"} · ${d.store}`), el("span", {}, d.date || "이전")))
+    : [el("p", { class: "empty" }, "기록이 없어요.")]));
+  $("built").textContent = `사이트 갱신 ${BUILT}` + (sync ? ` · ${syncNote || "드라이브와 동기화됨"}` : syncing ? " · 드라이브 확인 중…" : STATE_URL.startsWith("http") ? (SKEY ? " · 드라이브에 연결하지 못했어요" : " · 드라이브 연결 안 됨 (열쇠 링크로 한 번 열어 주세요)") : "");
+  if (view === "make") renderMake();
+}
+
+for (const v of ["todo", "make", "done"]) $("t-" + v).addEventListener("click", () => {
+  view = v; try { localStorage.setItem("clipkit.view", v); } catch (_) {} render();
+});
+$("q").addEventListener("input", renderMake);
+$("reload").addEventListener("click", () => {
+  // 새 클립이 배포됐을 수도 있으니 페이지째 새로 받는다 (드라이브 상태는 열 때 다시 받음)
+  $("reload").classList.add("spin");
+  location.replace(location.pathname + "?r=" + Date.now());
+});
+for (const b of $("typef").querySelectorAll("button")) b.addEventListener("click", () => {
+  typeF = b.dataset.t; try { localStorage.setItem("clipkit.type", typeF); } catch (_) {} render();
+});
+$("report-btn").addEventListener("click", () => copy(reportText(), $("report-btn"), "올린 목록 복사"));
+loadMarks(); render();
+// 드라이브 JSON이 기준: 마지막으로 받은 상태로 바로 그리고, 새로 받아 덮는다. 다시 이 화면으로 돌아올 때도 새로 받는다.
+function refresh() {
+  if (!SKEY || syncing) return;
+  syncing = true; render();
+  syncCall().then(s => { sync = s; syncNote = `드라이브와 동기화됨 ${stamp()}`; })
+    .catch(() => { syncNote = sync ? "드라이브에서 새로 받지 못했어요 (마지막 상태 표시 중)" : ""; })
+    .finally(() => { syncing = false; render(); });
+}
+if (SKEY) { try { const c = JSON.parse(localStorage.getItem("clipkit.state") || "null"); if (c) { sync = c; syncNote = "마지막 상태 표시 중 · 새로 받는 중…"; } } catch (_) {} }
+render(); refresh();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+</script>
+</body>
+</html>

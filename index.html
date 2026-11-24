@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-title" content="클립 키트">
+<title>클립 업로드 키트</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Gowun+Batang:wght@700&display=swap">
+<style>
+/* 한 손 스크롤용 세로 카드 목록: 위에 이번 주 미션 진행, 아래로 올릴 항목 카드. 카드 하나 = 앱에서 한 번 올리는 단위 */
+:root {
+  --bg: #F6F3EE; --card: #FFFFFF; --ink: #24201B; --sub: #7A7066; --line: #E6DFD5;
+  --accent: #B8692A; --accent-ink: #FFFFFF; --soft: #F3E6D8; --ok: #2E7D5B; --ok-soft: #E1F1E8;
+  --display: "Gowun Batang", "IBM Plex Sans KR", serif;
+  --body: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #1B1815; --card: #26221E; --ink: #F1ECE5; --sub: #A89D90; --line: #3A342E;
+  --accent: #E0954F; --accent-ink: #1B1815; --soft: #3A2C20; --ok: #6CC79B; --ok-soft: #1F3A2D; color-scheme: dark } }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
+main { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--display); font-size: 26px; margin: 0; text-wrap: balance; }
+.lead { color: var(--sub); margin: 4px 0 0; font-size: 14px; }
+.mission { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.meter { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.meter b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.meter span { color: var(--sub); font-size: 13px; display: block; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+details { background: var(--soft); border-radius: 12px; padding: 12px 14px; }
+summary { font-weight: 600; cursor: pointer; }
+details ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+.tabs { display: flex; gap: 8px; }
+.tabs button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 600 14px var(--body); }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card.done { opacity: .62; }
+.head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.head h2 { font-size: 19px; margin: 0; flex: 1; min-width: 0; }
+.chip { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--accent); letter-spacing: .02em; }
+.date { color: var(--sub); font-size: 13px; font-variant-numeric: tabular-nums; }
+.strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.strip img { height: 132px; width: auto; border-radius: 8px; flex: none; background: var(--line); }
+.row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 8px; font-size: 14px; }
+.row dt { color: var(--sub); }
+.row dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
+.mini { font: 600 13px var(--body); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.desc { background: var(--bg); border-radius: 10px; padding: 12px; font-size: 13.5px; font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; max-height: 9.5em; overflow: hidden; }
+.desc.open { max-height: none; }
+.more { align-self: flex-start; background: none; border: 0; color: var(--sub); font: 500 13px var(--body); padding: 0; text-decoration: underline; }
+.req { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.req > button { padding: 14px 10px; border-radius: 12px; border: 1px dashed var(--accent); background: var(--card); color: var(--accent); font: 700 15px var(--body); }
+.req > button[aria-expanded="true"] { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+form.order { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+form.order h2 { margin: 0; font-size: 18px; }
+form.order label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--sub); font-weight: 500; }
+form.order input, form.order textarea { font: 400 16px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; }
+form.order textarea { min-height: 84px; resize: vertical; }
+form.order .seg { display: flex; gap: 8px; }
+form.order .seg label { flex: 1; flex-direction: row; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; color: var(--ink); }
+form.order .seg input { width: auto; margin: 0; accent-color: var(--accent); }
+form.order .hint { margin: 0; font-size: 12.5px; color: var(--sub); }
+.gh { display: block; text-align: center; padding: 14px; border-radius: 12px; background: var(--ink); color: var(--bg); font: 700 16px var(--body); text-decoration: none; }
+.save { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid var(--accent); background: transparent; color: var(--accent); font: 700 16px var(--body); }
+.save[disabled] { opacity: .6; cursor: progress; }
+.save.ok { border-color: var(--ok); color: var(--ok); }
+.links { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
+.links a { color: var(--accent); }
+.copy { width: 100%; padding: 14px; border-radius: 12px; border: 0; background: var(--accent); color: var(--accent-ink); font: 700 16px var(--body); }
+.copy.ok, .mini.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+.steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--sub); }
+.steps li { border: 1px dashed var(--line); border-radius: 999px; padding: 3px 9px; }
+.steps li.key { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.done-btn { padding: 12px; border-radius: 12px; border: 1px solid var(--ok); background: transparent; color: var(--ok); font: 700 15px var(--body); }
+.card.done .done-btn { background: var(--ok-soft); }
+.report { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.report p { margin: 0; font-size: 13.5px; color: var(--sub); }
+.note { font-size: 12.5px; color: var(--sub); text-align: center; margin: 0; }
+.empty { text-align: center; color: var(--sub); padding: 32px 0; }
+button { cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<style>
+.tabs3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tabs3 button { padding: 10px 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 600 14px var(--body); }
+.tabs3 button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.search { font: 400 16px var(--body); color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group h3 { margin: 6px 2px 0; font-size: 13px; color: var(--sub); font-weight: 600; letter-spacing: .02em; }
+.cand { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.cand > button { width: 100%; text-align: left; background: none; border: 0; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; color: var(--ink); font-family: var(--body); }
+.cand .nm { font-weight: 700; font-size: 16px; }
+.cand .meta { grid-column: 1; color: var(--sub); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cand .rec { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+.chip.warn { background: transparent; border: 1px solid var(--line); color: var(--sub); }
+.chip.req { background: var(--ok-soft); color: var(--ok); }
+.cand .body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cand .memo-note { margin: 0; font-size: 13px; color: var(--sub); }
+.seg { display: flex; gap: 8px; }
+.seg label { flex: 1; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 14px; }
+.seg input { margin: 0; accent-color: var(--accent); }
+.cand textarea { font: 400 16px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 72px; resize: vertical; }
+.warnbox { margin: 0; font-size: 13px; background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+.drow { display: flex; justify-content: space-between; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+.drow > span:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; min-width: 0; }
+.drow .chip { flex: none; }
+.drow > span:last-child { color: var(--sub); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 접힌 카드: 썸네일 + 이름 + 자주 쓰는 버튼(저장·설명 복사·올렸어요)만. 나머지는 펼치면 */
+header { display: flex; align-items: flex-start; gap: 10px; }
+header > div { flex: 1; min-width: 0; }
+.reload { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: 600 13px var(--body); }
+.reload svg { width: 16px; height: 16px; }
+.reload.spin svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.mission { gap: 8px; }
+.meter { padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 6px; }
+.meter b { font-size: 18px; }
+.meter .bar { grid-column: 1 / -1; margin-top: 6px; }
+#list { gap: 10px; }
+.kc { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kc.done { opacity: .55; }
+.kc .top { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; }
+.kc .top img { width: 48px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--line); }
+.kc .ttl { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.kc .ttl b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kc .ttl span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.kc .ttl .chip { padding: 1px 7px; font-size: 11px; }
+.kc .fold { background: none; border: 0; color: var(--sub); font: 600 13px var(--body); padding: 8px 4px; }
+.kc .acts { display: grid; grid-template-columns: 1fr 1fr 52px; gap: 8px; }
+.kc .acts .save, .kc .acts .copy { padding: 11px 6px; font-size: 14.5px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kc .acts .save { border-width: 1.5px; }
+.kc .chk { border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--sub); font: 700 18px var(--body); }
+.kc .chk[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #fff; }
+.kc .detail { display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+.kc .strip img { height: 112px; }
+.fold-done { align-self: flex-start; background: none; border: 1px dashed var(--line); border-radius: 999px; color: var(--sub); font: 600 13px var(--body); padding: 6px 12px; }
+</style>
+<main>
+  <header>
+    <div><h1>클립 업로드 키트</h1>
+    <p class="lead" id="lead"></p></div>
+    <button class="reload" id="reload" aria-label="새로고침"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>새로고침</button>
+  </header>
+
+  <section class="mission" aria-label="이번 주 미션">
+    <div class="meter"><span>이번 주 동영상</span><span><b id="mv">0</b> / 6</span><div class="bar"><i id="bv"></i></div></div>
+    <div class="meter"><span>이번 주 게시물</span><span><b id="mp">0</b> / 6</span><div class="bar"><i id="bp"></i></div></div>
+  </section>
+
+  <div class="tabs3" role="group" aria-label="보기">
+    <button id="t-todo" aria-pressed="true">올릴 것 <span id="n-todo"></span></button>
+    <button id="t-make" aria-pressed="false">만들 것 <span id="n-make"></span></button>
+    <button id="t-done" aria-pressed="false">올린 것 <span id="n-done"></span></button>
+  </div>
+
+  <div class="tabs" id="typef" role="group" aria-label="종류">
+    <button data-t="all" aria-pressed="true">전체 <span></span></button>
+    <button data-t="video" aria-pressed="false">동영상 <span></span></button>
+    <button data-t="post" aria-pressed="false">게시물 <span></span></button>
+  </div>
+
+  <!-- 올릴 것 -->
+  <section id="v-todo" class="list">
+    <details>
+      <summary>아이폰에서 올리는 순서</summary>
+      <ol>
+        <li>카드의 <b>사진첩에 저장</b> → 공유 시트에서 <b>이미지 저장</b>(동영상은 <b>비디오 저장</b>)</li>
+        <li><b>설명 복사</b></li>
+        <li>네이버 클립 앱 → 만들기 → 사진첩에서 선택 (게시물은 01부터 순서대로)</li>
+        <li>동영상은 <b>음원 추가</b> → 설명 붙여넣기 → 정보 태그에 장소 태그 → 전체 공개 → 등록</li>
+        <li>여기서 <b>올렸어요</b> → 드라이브에 저장돼서 PC·폰 어디서 봐도 같아요</li>
+      </ol>
+    </details>
+    <div id="list" class="list"></div>
+    <section class="report" id="report">
+      <p id="report-text"></p>
+      <p id="report-sync">구글 드라이브에 저장됐어요. Claude에게 "올렸어"라고만 하면 0_완료로 옮기고 사이트를 갱신해요.</p>
+      <button class="copy" id="report-btn">올린 목록 복사</button>
+    </section>
+  </section>
+
+  <!-- 만들 것 -->
+  <section id="v-make" class="list" hidden>
+    <input class="search" id="q" type="search" placeholder="가게·동네 검색 (예: 미금, 갓잇)" aria-label="후보 검색">
+    <div id="myreq" class="group" hidden></div>
+    <div id="cands" class="list"></div>
+    <p class="note">드라이브 작성완료 폴더 중 아직 클립을 안 만든 곳이에요. 고르고 요청을 보내면 드라이브에 저장되고, Claude에게 "클립 요청 확인해줘"라고 하면 만들어요.</p>
+  </section>
+
+  <!-- 올린 것 -->
+  <section id="v-done" class="list" hidden>
+    <div id="done" class="list"></div>
+  </section>
+
+  <p class="note" id="built"></p>
+</main>
+
+<script>
+const ITEMS = [{"id": "c96e730eab", "name": "20240407 샐러디 미금점_게시물", "date": "2024.04.07", "store": "샐러디 미금점", "type": "post", "files": "20240407 샐러디 미금점_게시물 폴더 사진 6장", "tag": "샐러디 미금점", "desc": "[분당] 미금역 샐러드집 샐러디 미금점 🌼\n\n먹기 전엔 고민했는데 웜볼 한 그릇에 배가 든든해졌어요\n\n칠리베이컨 웜볼은 계란·옥수수·현미밥까지 가득하고, 드레싱이 따로 나와서 양을 조절할 수 있어요.\n오피스텔 건물이라 혼자 오는 손님이 많아서 혼밥하기 편하더라구요.\n\n💡 Tip\n· 11:00~20:00 (토 휴무)\n· 건물 내 주차 가능, 성남페이 가능\n· 매월 22일 앱에서 4,500원 쿠폰\n\n#오늘클립챌린지 #미금역맛집 #미금샐러드 #분당맛집 #미금혼밥", "chars": 257, "thumbs": ["thumbs/c96e730eab_01.jpg", "thumbs/c96e730eab_02.jpg", "thumbs/c96e730eab_03.jpg", "thumbs/c96e730eab_04.jpg", "thumbs/c96e730eab_05.jpg", "thumbs/c96e730eab_06.jpg"], "assets": ["files/20240407_c96e730eab_01.jpg", "files/20240407_c96e730eab_02.jpg", "files/20240407_c96e730eab_03.jpg", "files/20240407_c96e730eab_04.jpg", "files/20240407_c96e730eab_05.jpg", "files/20240407_c96e730eab_06.jpg"], "bytes": 3118320}, {"id": "d4ae8394f8", "name": "20240506 엘리팝 판교점_게시물", "date": "2024.05.06", "store": "엘리팝 판교점", "type": "post", "files": "20240506 엘리팝 판교점_게시물 폴더 사진 7장", "tag": "엘리팝 판교점", "desc": "[성남] 대장동 술집 엘리팝 판교점 🌼\n\n치킨은 기대 안 했는데 한 입 먹고 생각이 바뀌었어요\n\n에그인헬은 처음 먹어 봤는데 페페론치노가 들어가서 얼큰하더라구요.\n살얼음 낀 생맥주랑 같이 먹으니까 더 잘 어울렸어요.\n계절 디스플레이랑 스페이드 병따개까지 사장님 센스가 보여요.\n\n💡 Tip\n· 매일 18:00~01:00\n· 건물 내 주차장 이용 가능\n· 자리마다 키오스크 주문, 단체 예약 가능\n\n#오늘클립챌린지 #대장동술집 #대장동치킨 #판교술집 #판교생맥주", "chars": 257, "thumbs": ["thumbs/d4ae8394f8_01.jpg", "thumbs/d4ae8394f8_02.jpg", "thumbs/d4ae8394f8_03.jpg", "thumbs/d4ae8394f8_04.jpg", "thumbs/d4ae8394f8_05.jpg", "thumbs/d4ae8394f8_06.jpg", "thumbs/d4ae8394f8_07.jpg"], "assets": ["files/20240506_d4ae8394f8_01.jpg", "files/20240506_d4ae8394f8_02.jpg", "files/20240506_d4ae8394f8_03.jpg", "files/20240506_d4ae8394f8_04.jpg", "files/20240506_d4ae8394f8_05.jpg", "files/20240506_d4ae8394f8_06.jpg", "files/20240506_d4ae8394f8_07.jpg"], "bytes": 4141564}, {"id": "dd650315c5", "name": "20240608 서현 가비양_게시물", "date": "2024.06.08", "store": "서현 가비양", "type": "post", "files": "20240608 서현 가비양_게시물 폴더 사진 9장", "tag": "서현 가비양", "desc": "원두 다섯 가지를 한 모금씩 비교해 봤는데, 에티오피아 내추럴이 정말 와인 같더라구요\n\n서현 시범 먹자골목 안쪽에 있는 핸드드립 카페 가비양에 짝꿍이랑 다녀왔어요.\n원두를 직접 수입해서 볶는 곳이라 이야기 듣는 재미가 있었고, 마지막에 아이스크림 위로 블랙뷰티 블렌드를 내려주신 게 제일 기억에 남아요 ☕\n\n매일 10:00~22:00 영업하고, 주차도 돼요.\n\n#오늘클립챌린지 #서현역카페 #분당핸드드립 #분당카페 #분당데이트", "chars": 238, "thumbs": ["thumbs/dd650315c5_01.jpg", "thumbs/dd650315c5_02.jpg", "thumbs/dd650315c5_03.jpg", "thumbs/dd650315c5_04.jpg", "thumbs/dd650315c5_05.jpg", "thumbs/dd650315c5_06.jpg", "thumbs/dd650315c5_07.jpg", "thumbs/dd650315c5_08.jpg", "thumbs/dd650315c5_09.jpg"], "assets": ["files/20240608_dd650315c5_01.jpg", "files/20240608_dd650315c5_02.jpg", "files/20240608_dd650315c5_03.jpg", "files/20240608_dd650315c5_04.jpg", "files/20240608_dd650315c5_05.jpg", "files/20240608_dd650315c5_06.jpg", "files/20240608_dd650315c5_07.jpg", "files/20240608_dd650315c5_08.jpg", "files/20240608_dd650315c5_09.jpg"], "bytes": 5893302}, {"id": "b17382b5ba", "name": "20240831 미금 행하령수제비_게시물", "date": "2024.08.31", "store": "미금 행하령수제비", "type": "post", "files": "20240831 미금 행하령수제비_게시물 폴더 사진 8장", "tag": "미금 행하령수제비", "desc": "입구에 블루리본 스티커가 다섯 개나 붙어 있었어요\n\n미금역 3,4번 출구에서 3분 거리, 행하령수제비에 다녀왔어요.\n셀프 오더로 번호표 받고 15~20분 기다렸어요.\n수제비가 얇아서 호로록 넘어가고, 오시리멸치 육수 감칠맛이 진하거든요. 일반 사이즈도 양이 많아요.\n\n월~토 11:30~19:00, 15:00~17:00 브레이크예요.\n재료가 떨어지면 일찍 닫아서 점심이 좋아요. 주차는 어려워서 공영주차장이 편해요 🍲\n\n#오늘클립챌린지 #미금역맛집 #미금역수제비 #분당칼국수 #분당맛집", "chars": 271, "thumbs": ["thumbs/b17382b5ba_01.jpg", "thumbs/b17382b5ba_02.jpg", "thumbs/b17382b5ba_03.jpg", "thumbs/b17382b5ba_04.jpg", "thumbs/b17382b5ba_05.jpg", "thumbs/b17382b5ba_06.jpg", "thumbs/b17382b5ba_07.jpg", "thumbs/b17382b5ba_08.jpg"], "assets": ["files/20240831_b17382b5ba_01.jpg", "files/20240831_b17382b5ba_02.jpg", "files/20240831_b17382b5ba_03.jpg", "files/20240831_b17382b5ba_04.jpg", "files/20240831_b17382b5ba_05.jpg", "files/20240831_b17382b5ba_06.jpg", "files/20240831_b17382b5ba_07.jpg", "files/20240831_b17382b5ba_08.jpg"], "bytes": 4465826}, {"id": "7c2b8de53c", "name": "20240909 야탑 배밭갈비_게시물", "date": "2024.09.09", "store": "야탑 배밭갈비", "type": "post", "files": "20240909 야탑 배밭갈비_게시물 폴더 사진 9장", "tag": "야탑 배밭갈비", "desc": "외식하면 꼭 한 점씩 남기던 저희가 이번엔 싹싹 긁어먹었어요\n\n출퇴근길마다 차가 가득하던 야탑 배밭갈비 분당점에 드디어 다녀왔어요.\n돼지갈비를 직원분이 직접 구워주셔서 태울 걱정이 없고, 갈비집 맞나 싶을 만큼 실내가 깔끔하더라구요.\n반찬은 고기 나오기 전에 벌써 두세 개 비웠어요.\n\n돼지갈비는 19,000원, 매일 11:30~21:30 영업해요.\n가게 앞 발렛이 무료라 차 갖고 가기 편해요 🚗\n\n#오늘클립챌린지 #야탑역맛집 #야탑돼지갈비 #분당맛집 #성남갈비", "chars": 259, "thumbs": ["thumbs/7c2b8de53c_01.jpg", "thumbs/7c2b8de53c_02.jpg", "thumbs/7c2b8de53c_03.jpg", "thumbs/7c2b8de53c_04.jpg", "thumbs/7c2b8de53c_05.jpg", "thumbs/7c2b8de53c_06.jpg", "thumbs/7c2b8de53c_07.jpg", "thumbs/7c2b8de53c_08.jpg", "thumbs/7c2b8de53c_09.jpg"], "assets": ["files/20240909_7c2b8de53c_01.jpg", "files/20240909_7c2b8de53c_02.jpg", "files/20240909_7c2b8de53c_03.jpg", "files/20240909_7c2b8de53c_04.jpg", "files/20240909_7c2b8de53c_05.jpg", "files/20240909_7c2b8de53c_06.jpg", "files/20240909_7c2b8de53c_07.jpg", "files/20240909_7c2b8de53c_08.jpg", "files/20240909_7c2b8de53c_09.jpg"], "bytes": 5581442}, {"id": "c6d3e63b33", "name": "20240921 오레노카츠 판교점_게시물", "date": "2024.09.21", "store": "오레노카츠 판교점", "type": "post", "files": "20240921 오레노카츠 판교점_게시물 폴더 사진 8장", "tag": "오레노카츠 판교점", "desc": "[성남] 판교 봇들마을 돈까스집 오레노카츠 판교점 🌼\n\n매콤소스 하나 추가했을 뿐인데 튀김마다 다 찍어 먹었어요\n\n비 오는 저녁에 갔는데 외관이 과자집 같아서 들어가기 전부터 기분이 좋았어요.\n등심이 꽉 찼는데도 부드럽고, 마제소바 남은 양념에 밥이랑 소스 비벼 먹은 게 진짜 별미였어요.\n\n💡 Tip\n· 스페셜A 세트 18,500원 (돈까스+에비카츠+고로케+우동)\n· 매일 11:30~21:00 (브레이크 14:30~16:00)\n· 건물 내 주차, 성남페이 가능\n\n#오늘클립챌린지 #봇들마을맛집 #판교돈까스 #삼평동돈까스 #판교맛집", "chars": 298, "thumbs": ["thumbs/c6d3e63b33_01.jpg", "thumbs/c6d3e63b33_02.jpg", "thumbs/c6d3e63b33_03.jpg", "thumbs/c6d3e63b33_04.jpg", "thumbs/c6d3e63b33_05.jpg", "thumbs/c6d3e63b33_06.jpg", "thumbs/c6d3e63b33_07.jpg", "thumbs/c6d3e63b33_08.jpg"], "assets": ["files/20240921_c6d3e63b33_01.jpg", "files/20240921_c6d3e63b33_02.jpg", "files/20240921_c6d3e63b33_03.jpg", "files/20240921_c6d3e63b33_04.jpg", "files/20240921_c6d3e63b33_05.jpg", "files/20240921_c6d3e63b33_06.jpg", "files/20240921_c6d3e63b33_07.jpg", "files/20240921_c6d3e63b33_08.jpg"], "bytes": 4736474}, {"id": "add474d0fa", "name": "20240929 삼동소바_클립.mp4", "date": "2024.09.29", "store": "삼동소바", "type": "video", "files": "20240929 삼동소바_클립.mp4", "tag": "삼동소바", "desc": "소바집 갔는데 돈까스가 더 기억에 남는 곳ㅋㅋ\n\n[성남] 서현동 소바집 삼동소바 분당점 🌼\n\n나무톤 인테리어라 차분하고 공간이 넓어서 가족 모임에도 좋아 보였어요. 냉소바는 깔끔하고 매운 우육소바는 국물이 중독성 있어요.\n\n💡 Tip\n· 세트메뉴 15,000원대 (소바+돈까스)\n· 매일 11:00~20:30\n· 자체 주차장, 붐비면 발렛\n· 캐치테이블 웨이팅\n\n#오늘클립챌린지 #삼동소바 #서현맛집 #분당소바 #서현동맛집", "chars": 236, "thumbs": ["thumbs/add474d0fa_01.jpg"], "assets": ["files/20240929_add474d0fa.mp4"], "bytes": 18143721}, {"id": "32621c87fa", "name": "20241011 틈 서현_게시물", "date": "2024.10.11", "store": "틈 서현", "type": "post", "files": "20241011 틈 서현_게시물 폴더 사진 8장", "tag": "틈 서현", "desc": "[분당] 서현역 술집 틈 서현 🌼\n\n비밀 문 같은 입구를 찾아 들어갔다가 동파육에 반했어요\n\n수저만으로 쭉쭉 찢어지는 동파육에 꽃빵 곁들인 중화볶음면까지 전통주랑 잘 어울리더라구요.\n붉은원숭이는 색이 진하게 예쁜데 10.8도라 꽤 센 편이에요.\n\n💡 Tip\n· 평일 17:00~02:00 / 주말 16:00~02:00\n· 서현역 4번 출구 200m, 건물 주차장 쪽 입구\n· 캐치테이블·네이버 예약 가능\n\n#오늘클립챌린지 #서현역맛집 #서현동파육 #분당술집 #서현역데이트", "chars": 263, "thumbs": ["thumbs/32621c87fa_01.jpg", "thumbs/32621c87fa_02.jpg", "thumbs/32621c87fa_03.jpg", "thumbs/32621c87fa_04.jpg", "thumbs/32621c87fa_05.jpg", "thumbs/32621c87fa_06.jpg", "thumbs/32621c87fa_07.jpg", "thumbs/32621c87fa_08.jpg"], "assets": ["files/20241011_32621c87fa_01.jpg", "files/20241011_32621c87fa_02.jpg", "files/20241011_32621c87fa_03.jpg", "files/20241011_32621c87fa_04.jpg", "files/20241011_32621c87fa_05.jpg", "files/20241011_32621c87fa_06.jpg", "files/20241011_32621c87fa_07.jpg", "files/20241011_32621c87fa_08.jpg"], "bytes": 4260478}, {"id": "ef04f165d1", "name": "20241019 마포우사미_클립.mp4", "date": "2024.10.19", "store": "마포우사미", "type": "video", "files": "20241019 마포우사미_클립.mp4", "tag": "마포우사미", "desc": "가족 모임 장소 고민될 때 여기 어때요?\n\n[서울] 약수역 소갈비찜 마포우사미 🌼\n\n해물 가득한 소갈비찜에 소고기 보신전골, 차돌삼합까지 다 푸짐했어요. 직원분들이 친절하고 좌석도 넉넉해서 어른들 모시고 가기 편했어요.\n\n💡 Tip\n· 약수역 10번 출구 도보 1분\n· 10:00~22:00, 일요일 휴무\n· 주차·단체 가능, 1인분 메뉴도 있어 점심으로도 좋아요\n\n#오늘클립챌린지 #마포우사미 #약수역맛집 #소갈비찜맛집 #차돌삼합맛집", "chars": 243, "thumbs": ["thumbs/ef04f165d1_01.jpg"], "assets": ["files/20241019_ef04f165d1.mp4"], "bytes": 19671663}, {"id": "fed2c15aa9", "name": "20241022 옥된장_클립.mp4", "date": "2024.10.22", "store": "옥된장", "type": "video", "files": "20241022 옥된장_클립.mp4", "tag": "옥된장", "desc": "된장집인 줄 알았는데 메뉴가 이렇게 많아졌을 줄이야\n\n[성남] 미금역 한식 옥된장 미금점 🌼\n\n새콤한 수육무침에 미나리 듬뿍, 오징어 들어간 된장전골은 국물이 묵직해요. 2층은 테이블 간격이 넉넉해서 데이트로 딱이었어요.\n\n💡 Tip\n· 미금역 8번 출구 1분, 주차·네이버 예약 가능\n· 11:00~21:00 (15~17시 브레이크)\n· 된장전골 시키면 수육무침 작은 사이즈 주문 가능\n\n#오늘클립챌린지 #옥된장미금점 #미금역맛집 #미금역한식 #금곡동맛집", "chars": 255, "thumbs": ["thumbs/fed2c15aa9_01.jpg"], "assets": ["files/20241022_fed2c15aa9.mp4"], "bytes": 18170835}, {"id": "4f18158c5f", "name": "20241026 담솥_클립.mp4", "date": "2024.10.26", "store": "담솥", "type": "video", "files": "20241026 담솥_클립.mp4", "tag": "담솥", "desc": "솥밥집에 갔는데 스키야키 국물을 제일 많이 떠먹고 왔어요\n\n위례 센트럴스퀘어에 있는 솥밥집 담솥 위례점이에요.\n스테이크 솥밥은 점심·저녁 15개씩만 판대요. 다 먹고 남은 솥엔 물 부어서 숭늉까지 만들어 먹었어요.\n\n솥밥은 12,000~20,000원대, 매일 11:00~21:30이에요.\n점심엔 웨이팅이 금방 생기고, 주차는 센트럴스퀘어 지하주차장이에요. 유아의자도 있어요 🍲\n\n#오늘클립챌린지 #위례신도시맛집 #위례솥밥 #성남맛집 #위례가족외식", "chars": 249, "thumbs": ["thumbs/4f18158c5f_01.jpg"], "assets": ["files/20241026_4f18158c5f.mp4"], "bytes": 17479901}, {"id": "45ee022191", "name": "20241103 경희보궁_클립.mp4", "date": "2024.11.03", "store": "경희보궁", "type": "video", "files": "20241103 경희보궁_클립.mp4", "tag": "경희보궁", "desc": "갈비뼈가 뚝배기 밖으로 삐져나와 있어서 한참 웃었어요\n\n서현 먹자골목 초입에 있는 갈비탕집 경희보궁에 주말 점심으로 다녀왔어요.\n국물이 깔끔한데도 오래 끓인 깊은 맛이 나고, 신메뉴인 소머리 해장국은 배추랑 콩나물, 무가 같이 들어가서 시원하더라구요. 셀프 반찬도 10가지가 넘었어요.\n\n가게 앞에서 발렛 주차를 해 주시고, 주말 점심엔 조금 기다릴 수도 있어요 🍲\n\n#오늘클립챌린지 #서현역맛집 #서현갈비탕 #분당맛집 #분당가족모임", "chars": 242, "thumbs": ["thumbs/45ee022191_01.jpg"], "assets": ["files/20241103_45ee022191.mp4"], "bytes": 21436552}, {"id": "9443223d11", "name": "20241108 피자베이비베이커스_게시물", "date": "2024.11.08", "store": "피자베이비베이커스", "type": "post", "files": "20241108 피자베이비베이커스_게시물 폴더 사진 8장", "tag": "피자베이비베이커스", "desc": "꽁다리까지 바삭해서 갈릭 디핑소스에 찍어 하나도 안 남겼어요\n\n서현역 바로 앞 피자집 피자베이비베이커스에 다녀왔어요.\n바르게리타랑 엘로테 옥수수를 하프앤하프로 시키고, 저희가 치폴레 소스에 빠져 있어서 치폴레윙도 같이 주문했거든요.\n가게 안 피자 소품 구경하느라 기다리는 시간도 금방 가더라구요 🍕\n\n산호프라자 2층이고 월요일은 쉬어요. 15:00~16:30은 브레이크예요.\n건물 주차 되고 성남페이도 돼요.\n\n#오늘클립챌린지 #서현역맛집 #서현피자 #분당피자맛집 #분당데이트", "chars": 266, "thumbs": ["thumbs/9443223d11_01.jpg", "thumbs/9443223d11_02.jpg", "thumbs/9443223d11_03.jpg", "thumbs/9443223d11_04.jpg", "thumbs/9443223d11_05.jpg", "thumbs/9443223d11_06.jpg", "thumbs/9443223d11_07.jpg", "thumbs/9443223d11_08.jpg"], "assets": ["files/20241108_9443223d11_01.jpg", "files/20241108_9443223d11_02.jpg", "files/20241108_9443223d11_03.jpg", "files/20241108_9443223d11_04.jpg", "files/20241108_9443223d11_05.jpg", "files/20241108_9443223d11_06.jpg", "files/20241108_9443223d11_07.jpg", "files/20241108_9443223d11_08.jpg"], "bytes": 3953372}, {"id": "8afb23fca1", "name": "20241109 삼송 라브리크 (스타필드 고양점)_게시물", "date": "2024.11.09", "store": "삼송 라브리크 (스타필드 고양점)", "type": "post", "files": "20241109 삼송 라브리크 (스타필드 고양점)_게시물 폴더 사진 8장", "tag": "삼송 라브리크 (스타필드 고양점)", "desc": "마팔디네 면이 물결 모양이라 크림소스가 면에 꽉 감겨 있더라구요\n\n스타필드 고양 1층 브런치집 라브리크에 다녀왔어요.\n화이트 라구 파스타랑 에그 베네딕트를 시켰는데, 노른자 터뜨려서 사워도우랑 먹으니 고소했어요.\n그런데 제일 맛있었던 건 칠리소스 올라간 감자튀김이었어요 🍟\n\n안쪽 벽에 카파도키아 동굴 같은 아치 공간이 있어서 구경하는 재미도 있어요.\n매일 10:00~21:00 영업이에요.\n\n#오늘클립챌린지 #스타필드고양맛집 #삼송브런치 #삼송파스타 #고양맛집", "chars": 258, "thumbs": ["thumbs/8afb23fca1_01.jpg", "thumbs/8afb23fca1_02.jpg", "thumbs/8afb23fca1_03.jpg", "thumbs/8afb23fca1_04.jpg", "thumbs/8afb23fca1_05.jpg", "thumbs/8afb23fca1_06.jpg", "thumbs/8afb23fca1_07.jpg", "thumbs/8afb23fca1_08.jpg"], "assets": ["files/20241109_8afb23fca1_01.jpg", "files/20241109_8afb23fca1_02.jpg", "files/20241109_8afb23fca1_03.jpg", "files/20241109_8afb23fca1_04.jpg", "files/20241109_8afb23fca1_05.jpg", "files/20241109_8afb23fca1_06.jpg", "files/20241109_8afb23fca1_07.jpg", "files/20241109_8afb23fca1_08.jpg"], "bytes": 3308831}, {"id": "7089f2975e", "name": "20241213 구미동 철이네포차_게시물", "date": "2024.12.13", "store": "구미동 철이네포차", "type": "post", "files": "20241213 구미동 철이네포차_게시물 폴더 사진 7장", "tag": "구미동 철이네포차", "desc": "[분당] 오리역 포차 구미동 철이네포차 🌼\n\n메인이 나오기도 전에 기본 안주로 테이블이 꽉 찼어요\n\n번데기, 팝콘, 콩나물국에 주먹밥 재료까지 나와서 직접 뭉쳐 먹었거든요.\n닭볶음탕은 매콤달콤하고 감자·당근이 넉넉했고, 계란찜도 탱글하더라구요.\n\n💡 Tip\n· 오리역 3번 출구 앞, 향정프라자 2층\n· 17:00~05:00, 일요일은 쉴 때도 있어요\n· 약 70석, 룸 따로 있어 단체 회식 OK\n· 주문은 테이블 NFC로\n\n#오늘클립챌린지 #오리역맛집 #구미동포차 #분당닭볶음탕 #오리역회식", "chars": 276, "thumbs": ["thumbs/7089f2975e_01.jpg", "thumbs/7089f2975e_02.jpg", "thumbs/7089f2975e_03.jpg", "thumbs/7089f2975e_04.jpg", "thumbs/7089f2975e_05.jpg", "thumbs/7089f2975e_06.jpg", "thumbs/7089f2975e_07.jpg"], "assets": ["files/20241213_7089f2975e_01.jpg", "files/20241213_7089f2975e_02.jpg", "files/20241213_7089f2975e_03.jpg", "files/20241213_7089f2975e_04.jpg", "files/20241213_7089f2975e_05.jpg", "files/20241213_7089f2975e_06.jpg", "files/20241213_7089f2975e_07.jpg"], "bytes": 3392529}, {"id": "33e846a907", "name": "20250713 분당동치미막국수_클립.mp4", "date": "2025.07.13", "store": "분당동치미막국수", "type": "video", "files": "20250713 분당동치미막국수_클립.mp4", "tag": "분당동치미막국수", "desc": "비빔장 넣고 비비는데 메밀 향이 먼저 올라오더라구요\n\n정자역 3번 출구 바로 앞, 분당동치미막국수 정자점에 다녀왔어요.\n고기리 본점 기억이 좋아서 가 봤는데, 정식에 나온 수육이랑 감자전까지 든든했어요 🥢\n\n메밀정식은 2인 이상 주문이고, 들기름 순메밀국수도 같이 먹었어요.\n매일 11시~21시, 건물 주차장 쓸 수 있고 키오스크 주문이에요.\n\n#오늘클립챌린지 #정자역맛집 #정자동막국수 #분당맛집 #정자동수육", "chars": 229, "thumbs": ["thumbs/33e846a907_01.jpg"], "assets": ["files/20250713_33e846a907.mp4"], "bytes": 19839226}, {"id": "920a3dc881", "name": "20250914 미소집_클립.mp4", "date": "2025.09.14", "store": "미소집", "type": "video", "files": "20250914 미소집_클립.mp4", "tag": "미소집", "desc": "등산하고 내려와서 먹는 갈비찜은 반칙 아닌가요 ㅋㅋ\n\n[분당 수내] 수내역 바로 옆 미나리 갈비찜 미소집 🌿\n\n국물이 짭짤하면서 단맛이 같이 오고 마늘향이 은근해요.\n미나리는 살짝 익혀서 고기랑 같이, 남은 국물엔 밥 비벼서 끝!\n\n💡 Tip\n· 현대판테온 오피스텔 1층, 건물 주차 2시간 무료\n· 네이버 예약 가능, 영수증 이벤트로 만두나 음료 서비스\n\n#오늘클립챌린지 #미소집 #수내역맛집 #분당갈비찜 #분당맛집", "chars": 233, "thumbs": ["thumbs/920a3dc881_01.jpg"], "assets": ["files/20250914_920a3dc881.mp4"], "bytes": 16194042}, {"id": "d3374c4f4e", "name": "20260121 판교 치플레_게시물", "date": "2026.01.21", "store": "판교 치플레", "type": "post", "files": "20260121 판교 치플레_게시물 폴더 사진 8장", "tag": "판교 치플레", "desc": "딥브레를 포크로 갈라 보니 속이 진한 초록색이라 반가웠어요\n\n판교 현대백화점 지하1층 치플레에서 수플레 치즈케이크 8개입 박스를 포장해 왔어요.\n네 가지 맛을 두 개씩 담았거든요.\n딥브레는 겉 설탕층이 살짝 깨지고 말차가 쌉싸름하게 남아서 커피랑 먹기 좋더라구요.\n치즈 맛은 진한데 무겁지 않아서 한 개 먹고도 부담이 없었어요 ☕\n\n8개입은 35,000원 정도였어요.\n\n#오늘클립챌린지 #판교카페 #판교현대백화점디저트 #수플레치즈케이크 #분당디저트", "chars": 250, "thumbs": ["thumbs/d3374c4f4e_01.jpg", "thumbs/d3374c4f4e_02.jpg", "thumbs/d3374c4f4e_03.jpg", "thumbs/d3374c4f4e_04.jpg", "thumbs/d3374c4f4e_05.jpg", "thumbs/d3374c4f4e_06.jpg", "thumbs/d3374c4f4e_07.jpg", "thumbs/d3374c4f4e_08.jpg"], "assets": ["files/20260121_d3374c4f4e_01.jpg", "files/20260121_d3374c4f4e_02.jpg", "files/20260121_d3374c4f4e_03.jpg", "files/20260121_d3374c4f4e_04.jpg", "files/20260121_d3374c4f4e_05.jpg", "files/20260121_d3374c4f4e_06.jpg", "files/20260121_d3374c4f4e_07.jpg", "files/20260121_d3374c4f4e_08.jpg"], "bytes": 2766000}, {"id": "ee51dd984c", "name": "20260906 나무사이로_클립.mp4", "date": "2026.09.06", "store": "나무사이로", "type": "video", "files": "20260906 나무사이로_클립.mp4", "tag": "나무사이로", "desc": "막국수 먹고 커피는 어디로 갈지 고민될 때 🌳\n\n[성남] 석운동 카페 나무사이로 석운점 🌼\n\n나무 사이로 볕 드는 넓은 공간이라 오래 있어도 편했어요. 푸어스테디로 내린 브루잉 커피도 깔끔했고요.\n\n💡 Tip\n· 계산대 옆 무료 시음 커피로 원두 먼저 맛보기\n· 브루잉·계화우롱 7,000원\n· 10:00~18:00 (L.O 17:30), 성남사랑상품권 chak 결제 가능\n\n#오늘클립챌린지 #나무사이로석운점 #고기리카페 #판교카페 #고기리막국수", "chars": 249, "thumbs": ["thumbs/ee51dd984c_01.jpg"], "assets": ["files/20260906_ee51dd984c.mp4"], "bytes": 15086044}, {"id": "1b153b9d41", "name": "20260912 고터 루브르바게트_게시물", "date": "2026.09.12", "store": "고터 루브르바게트", "type": "post", "files": "20260912 고터 루브르바게트_게시물 폴더 사진 7장", "tag": "고터 루브르바게트", "desc": "말차오레오 쫀득빵을 반 갈랐더니 오레오가 통째로 들어 있었어요\n\n고터 신세계 식품관 안쪽에 있는 프랑스루브르바게트에서 포장해 왔어요.\n매대마다 크루아상, 에그타르트, 치즈 바게트가 쌓여 있어서 고르는 데 시간이 꽤 걸렸거든요.\n망고왁뿌소금빵, 명란 치즈빵까지 세 개 골랐는데 셋 다 성격이 달랐어요.\n\n쫀득빵은 3,800원부터고 차갑게 먹으라고 안내돼 있어요.\n생크림 빵은 냉장 보관해서 다음 날까지 먹어야 해요 🥐\n\n#오늘클립챌린지 #고터맛집 #고속터미널빵집 #강남빵집 #쫀득빵", "chars": 268, "thumbs": ["thumbs/1b153b9d41_01.jpg", "thumbs/1b153b9d41_02.jpg", "thumbs/1b153b9d41_03.jpg", "thumbs/1b153b9d41_04.jpg", "thumbs/1b153b9d41_05.jpg", "thumbs/1b153b9d41_06.jpg", "thumbs/1b153b9d41_07.jpg"], "assets": ["files/20260912_1b153b9d41_01.jpg", "files/20260912_1b153b9d41_02.jpg", "files/20260912_1b153b9d41_03.jpg", "files/20260912_1b153b9d41_04.jpg", "files/20260912_1b153b9d41_05.jpg", "files/20260912_1b153b9d41_06.jpg", "files/20260912_1b153b9d41_07.jpg"], "bytes": 3790617}, {"id": "06e5538ac9", "name": "20261115 미금 바다생엽_게시물", "date": "2026.11.15", "store": "미금 바다생엽", "type": "post", "files": "20261115 미금 바다생엽_게시물 폴더 사진 6장", "tag": "미금 바다생엽", "desc": "[분당] 미금역 횟집 바다생엽 🌼\n\n셀프바에 국이 냄비째 끓고 있어서 반가웠어요\n\n회 올린 덮밥은 색이 알록달록해서 비비기 아까웠어요.\n생선구이도 껍질이 노릇하게 구워져 나와서 밥이 금방 없어지더라구요.\n\n💡 Tip\n· 점심특선 매일 11:00~15:00 (주말 포함)\n· 반찬·국은 셀프바에서 덜어 먹기\n· 입구에 활어 수조\n\n#오늘클립챌린지 #미금역맛집 #미금횟집 #분당맛집 #미금역점심", "chars": 218, "thumbs": ["thumbs/06e5538ac9_01.jpg", "thumbs/06e5538ac9_02.jpg", "thumbs/06e5538ac9_03.jpg", "thumbs/06e5538ac9_04.jpg", "thumbs/06e5538ac9_05.jpg", "thumbs/06e5538ac9_06.jpg"], "assets": ["files/20261115_06e5538ac9_01.jpg", "files/20261115_06e5538ac9_02.jpg", "files/20261115_06e5538ac9_03.jpg", "files/20261115_06e5538ac9_04.jpg", "files/20261115_06e5538ac9_05.jpg", "files/20261115_06e5538ac9_06.jpg"], "bytes": 3205784}];
+const DONE = [{"name": "20261111 모모테이블_클립.mp4", "store": "모모테이블", "type": "video", "date": "2026-11-23"}, {"name": "20251206 두향_클립.mp4", "store": "두향", "type": "video", "date": "2026-11-23"}, {"name": "20250810 전주 자매갈비전골_게시물", "store": "전주 자매갈비전골", "type": "post", "date": "2026-11-23"}, {"name": "20241026 야탑 화화돼지왕갈비 야탑점_게시물", "store": "야탑 화화돼지왕갈비 야탑점", "type": "post", "date": "2026-11-23"}, {"name": "20241013 계림닭도리탕_클립.mp4", "store": "계림닭도리탕", "type": "video", "date": "2026-11-23"}, {"name": "20240929 고쿠텐_클립.mp4", "store": "고쿠텐", "type": "video", "date": "2026-11-23"}, {"name": "20261108 스미노카리_클립.mp4", "store": "스미노카리", "type": "video", "date": "2026-11-18"}, {"name": "20251215 양재 아웃백_게시물", "store": "양재 아웃백", "type": "post", "date": "2026-11-18"}, {"name": "20251122 하치로돈부리_게시물", "store": "하치로돈부리", "type": "post", "date": "2026-11-18"}, {"name": "20250613 돈해상_클립.mp4", "store": "돈해상", "type": "video", "date": "2026-11-18"}, {"name": "20250525 구좌리손칼국수_클립.mp4", "store": "구좌리손칼국수", "type": "video", "date": "2026-11-18"}, {"name": "20250316 카미샤브_클립.mp4", "store": "카미샤브", "type": "video", "date": "2026-11-18"}, {"name": "20250303 자주오리_게시물", "store": "자주오리", "type": "post", "date": "2026-11-18"}, {"name": "20250105 사위식당_게시물", "store": "사위식당", "type": "post", "date": "2026-11-18"}, {"name": "20240928 대감집_클립.mp4", "store": "대감집", "type": "video", "date": "2026-11-18"}, {"name": "20240519 골목집_클립.mp4", "store": "골목집", "type": "video", "date": "2026-11-18"}, {"name": "20240810 미금 일로집_게시물", "store": "미금 일로집", "type": "post", "date": "2026-11-18"}, {"name": "20230313 미금황소곱창_게시물", "store": "미금황소곱창", "type": "post", "date": "2026-11-18"}, {"name": "20250621 계림원_게시물", "store": "계림원", "type": "post", "date": "2026-11-08"}, {"name": "20250811 풍남정_게시물", "store": "풍남정", "type": "post", "date": "2026-11-08"}, {"name": "20250726 사계진미_게시물", "store": "사계진미", "type": "post", "date": "2026-11-08"}, {"name": "20251026 벤탄빌라_게시물", "store": "벤탄빌라", "type": "post", "date": "2026-11-08"}, {"name": "20251101 경성면옥_게시물", "store": "경성면옥", "type": "post", "date": "2026-11-08"}, {"name": "20251228 백소정_클립.mp4", "store": "백소정", "type": "video", "date": "2026-11-08"}, {"name": "20261025 분당그릴_클립.mp4", "store": "분당그릴", "type": "video", "date": "2026-11-08"}, {"name": "20261101 진복국보리굴비_클립.mp4", "store": "진복국보리굴비", "type": "video", "date": "2026-11-08"}, {"name": "20261103 미랑식당_게시물", "store": "미랑식당", "type": "post", "date": "2026-11-08"}, {"name": "20261103 켄싱턴리조트설악밸리_게시물", "store": "켄싱턴리조트설악밸리", "type": "post", "date": "2026-11-08"}, {"name": "20261104 카페로까_게시물", "store": "카페로까", "type": "post", "date": "2026-11-08"}, {"name": "20261104 한식주점카리_클립.mp4", "store": "한식주점카리", "type": "video", "date": "2026-11-08"}, {"name": "20261104 황대구탕_게시물", "store": "황대구탕", "type": "post", "date": "2026-11-08"}, {"name": "20261106 골든디쉬아메리칸차이니즈_클립.mp4", "store": "골든디쉬아메리칸차이니즈", "type": "video", "date": "2026-11-08"}, {"name": "20250517 이수사_게시물", "store": "이수사", "type": "post", "date": "2026-11-04"}, {"name": "20261101 타짜오리하우스_게시물", "store": "타짜오리하우스", "type": "post", "date": "2026-11-04"}, {"name": "20261031 코너546_게시물", "store": "코너546", "type": "post", "date": "2026-11-03"}, {"name": "20260723 전복만복래_게시물", "store": "전복만복래", "type": "post", "date": "2026-11-03"}, {"name": "20250727 고향옥순대국_클립.mp4", "store": "고향옥순대국", "type": "video", "date": "2026-11-01"}, {"name": "20251213 봉면옥_클립.mp4", "store": "봉면옥", "type": "video", "date": "2026-11-01"}, {"name": "20251206 갓잇_클립.mp4", "store": "갓잇", "type": "video", "date": "2026-11-01"}, {"name": "20261017 티엔미미_클립_2안.mp4", "store": "티엔미미", "type": "video", "date": "2026-11-01"}, {"name": "20260718 군침_게시물", "store": "군침", "type": "post", "date": "2026-11-01"}, {"name": "20250531 열문집_클립.mp4", "store": "열문집", "type": "video", "date": "2026-10-31"}, {"name": "20260714 홍수회전훠궈_게시물", "store": "홍수회전훠궈", "type": "post", "date": "2026-10-26"}, {"name": "20260419 바다회활어_클립.mp4", "store": "바다회활어", "type": "video", "date": "2026-10-25"}, {"name": "20251129 콘타이_클립.mp4", "store": "콘타이", "type": "video", "date": "2026-10-25"}, {"name": "20261017 구우움베이커리_클립_2안.mp4", "store": "구우움베이커리", "type": "video", "date": "2026-10-25"}, {"name": "20260528 스미스씨네농장_클립.mp4", "store": "스미스씨네농장", "type": "video", "date": "2026-10-25"}, {"name": "20260607 이오_게시물", "store": "이오", "type": "post", "date": "2026-10-25"}, {"name": "20260614 우대포_게시물", "store": "우대포", "type": "post", "date": "2026-10-25"}, {"name": "20260828 뼈에반한감자탕_게시물", "store": "뼈에반한감자탕", "type": "post", "date": "2026-10-25"}, {"name": "20261010 광명역 버거킹_게시물", "store": "광명역 버거킹", "type": "post", "date": "2026-10-25"}, {"name": "20261025 불곡산 대광사_클립.mp4", "store": "불곡산 대광사", "type": "video", "date": "2026-10-25"}, {"name": "20260205 육즙관리소_게시물", "store": "육즙관리소", "type": "post", "date": "2026-10-24"}, {"name": "20260307 강경불고기_게시물", "store": "강경불고기", "type": "post", "date": "2026-10-24"}, {"name": "20260528 이재모피자_게시물", "store": "이재모피자", "type": "post", "date": "2026-10-24"}, {"name": "20260619 강남소관_게시물", "store": "강남소관", "type": "post", "date": "2026-10-24"}, {"name": "20261005 순화옥_게시물", "store": "순화옥", "type": "post", "date": "2026-10-24"}, {"name": "20251226 매드포갈릭_게시물", "store": "매드포갈릭", "type": "post", "date": null}, {"name": "20251226 매드포갈릭_클립.mp4", "store": "매드포갈릭", "type": "video", "date": null}, {"name": "20251231 미송식탁_게시물", "store": "미송식탁", "type": "post", "date": null}, {"name": "20251231 미송식탁_클립.mp4", "store": "미송식탁", "type": "video", "date": null}, {"name": "20260102 군산오징어_게시물", "store": "군산오징어", "type": "post", "date": null}, {"name": "20260102 군산오징어_클립.mp4", "store": "군산오징어", "type": "video", "date": null}, {"name": "20260111 아카리라멘_게시물", "store": "아카리라멘", "type": "post", "date": null}, {"name": "20260111 아카리라멘_클립.mp4", "store": "아카리라멘", "type": "video", "date": null}, {"name": "20260111 오월의곤드레_게시물", "store": "오월의곤드레", "type": "post", "date": null}, {"name": "20260111 오월의곤드레_클립.mp4", "store": "오월의곤드레", "type": "video", "date": null}, {"name": "20260115 김청자매운갈비찜_게시물", "store": "김청자매운갈비찜", "type": "post", "date": null}, {"name": "20260115 김청자매운갈비찜_클립.mp4", "store": "김청자매운갈비찜", "type": "video", "date": null}, {"name": "20260118 영동가든_클립.mp4", "store": "영동가든", "type": "video", "date": null}, {"name": "20260207 꾸우덕_클립.mp4", "store": "꾸우덕", "type": "video", "date": null}, {"name": "20260207 이치류_클립.mp4", "store": "이치류", "type": "video", "date": null}, {"name": "20260315 수애가_클립.mp4", "store": "수애가", "type": "video", "date": null}, {"name": "20260405 훅트포케_게시물", "store": "훅트포케", "type": "post", "date": null}, {"name": "20260405 훅트포케_클립.mp4", "store": "훅트포케", "type": "video", "date": null}, {"name": "20260419 이화루_게시물", "store": "이화루", "type": "post", "date": null}, {"name": "20260419 이화루_클립.mp4", "store": "이화루", "type": "video", "date": null}, {"name": "20260421 동천_게시물", "store": "동천", "type": "post", "date": null}, {"name": "20260421 동천_클립.mp4", "store": "동천", "type": "video", "date": null}, {"name": "20260428 진스키야키_게시물", "store": "진스키야키", "type": "post", "date": null}, {"name": "20260428 진스키야키_클립.mp4", "store": "진스키야키", "type": "video", "date": null}, {"name": "20260501 더맛있는족발_게시물", "store": "더맛있는족발", "type": "post", "date": null}, {"name": "20260501 더맛있는족발_클립.mp4", "store": "더맛있는족발", "type": "video", "date": null}, {"name": "20260603 참치논데_게시물", "store": "참치논데", "type": "post", "date": null}, {"name": "20260603 참치논데_클립.mp4", "store": "참치논데", "type": "video", "date": null}, {"name": "20260710 강호식당_게시물", "store": "강호식당", "type": "post", "date": null}, {"name": "20260710 강호식당_클립.mp4", "store": "강호식당", "type": "video", "date": null}, {"name": "20260717 치킨파머스_게시물", "store": "치킨파머스", "type": "post", "date": null}, {"name": "20260717 치킨파머스_클립.mp4", "store": "치킨파머스", "type": "video", "date": null}, {"name": "20260725 애햄부대찌개_게시물", "store": "애햄부대찌개", "type": "post", "date": null}, {"name": "20260725 애햄부대찌개_클립.mp4", "store": "애햄부대찌개", "type": "video", "date": null}, {"name": "20260822 구름집_게시물", "store": "구름집", "type": "post", "date": null}, {"name": "20260822 구름집_클립.mp4", "store": "구름집", "type": "video", "date": null}, {"name": "20260831 갯바다해물샤브칼국수_게시물", "store": "갯바다해물샤브칼국수", "type": "post", "date": null}, {"name": "20260831 갯바다해물샤브칼국수_클립.mp4", "store": "갯바다해물샤브칼국수", "type": "video", "date": null}, {"name": "20260906 풍천민물장어직판장_게시물", "store": "풍천민물장어직판장", "type": "post", "date": null}, {"name": "20260906 풍천민물장어직판장_클립.mp4", "store": "풍천민물장어직판장", "type": "video", "date": null}, {"name": "20260915 보약족발보쌈_게시물", "store": "보약족발보쌈", "type": "post", "date": null}, {"name": "20260915 보약족발보쌈_클립.mp4", "store": "보약족발보쌈", "type": "video", "date": null}, {"name": "20260919 화돌농장_게시물", "store": "화돌농장", "type": "post", "date": null}, {"name": "20260919 화돌농장_클립.mp4", "store": "화돌농장", "type": "video", "date": null}, {"name": "20261002 데이지익선_클립.mp4", "store": "데이지익선", "type": "video", "date": null}, {"name": "20261002 평가옥_클립.mp4", "store": "평가옥", "type": "video", "date": null}, {"name": "20261003 판교장어사랑_클립.mp4", "store": "판교장어사랑", "type": "video", "date": null}, {"name": "20261017 양평해장국큰아들집_게시물", "store": "양평해장국큰아들집", "type": "post", "date": null}, {"name": "20261017 양평해장국큰아들집_클립.mp4", "store": "양평해장국큰아들집", "type": "video", "date": null}, {"name": "20261017 티엔미미_게시물", "store": "티엔미미", "type": "post", "date": null}];
+const CANDS = [{"id": "23c872cc", "name": "라브르에드니아 결혼식 하객후기", "store": "하객후기", "folder": "블로그작성/20261122 라브르에드니아 결혼식 하객후기", "date": "2026.11.22", "vids": 1, "secs": null, "photos": 19, "blog": "", "memo": "", "tier": "최근 올린 폴더", "rec": "post"}, {"id": "9570f153", "name": "판교 훅드포케", "store": "훅드포케", "folder": "블로그작성/작성완료/2025/202508/20250817 판교 훅드포케", "date": "2025.08.17", "vids": 5, "secs": 57, "photos": null, "blog": "223974991878", "memo": "정자점 클립 완료라 중복감. 후순위", "tier": "2순위", "rec": "video"}, {"id": "1418ab07", "name": "양재 미친양꼬치", "store": "미친양꼬치", "folder": "블로그작성/작성완료/2025/202505/20250509 양재 미친양꼬치", "date": "2025.05.09", "vids": 4, "secs": 42, "photos": null, "blog": "223861904726", "memo": "무한리필", "tier": "2순위", "rec": "video"}, {"id": "98d88453", "name": "정자우본관", "store": "정자우본관", "folder": "블로그작성/작성완료/2025/202510/20251107 정자우본관", "date": "2025.11.07", "vids": 4, "secs": 32, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "9d9041ef", "name": "정자 할머니의부뚜막", "store": "할머니의부뚜막", "folder": "블로그작성/작성완료/2025/202501/20250105 정자 할머니의부뚜막", "date": "2025.01.05", "vids": 4, "secs": 21, "photos": null, "blog": "", "memo": "", "tier": "2순위", "rec": "video"}, {"id": "be8a8d6b", "name": "서현 옥소반", "store": "옥소반", "folder": "블로그작성/작성완료/2024/202408/20240812 서현 옥소반", "date": "2024.08.12", "vids": 9, "secs": 239, "photos": null, "blog": "223545920376", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "84b62059", "name": "서현 곱창에빠지다", "store": "곱창에빠지다", "folder": "블로그작성/작성완료/2024/202410/20241018 서현 곱창에빠지다", "date": "2024.10.18", "vids": 7, "secs": 51, "photos": null, "blog": "223625607442", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "50198100", "name": "경주 오짱", "store": "오짱", "folder": "블로그작성/작성완료/2024/202411/20241121 경주 오짱", "date": "2024.11.21", "vids": 7, "secs": 44, "photos": null, "blog": "223671118362", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "fefd49de", "name": "야탑 비스트로올", "store": "비스트로올", "folder": "블로그작성/작성완료/2024/202404/20240427 야탑 비스트로올", "date": "2024.04.27", "vids": 6, "secs": 66, "photos": null, "blog": "223428954788", "memo": "", "tier": "3순위", "rec": "video"}, {"id": "b0228f99", "name": "서래마을 포폴라리타", "store": "포폴라리타", "folder": "블로그작성/작성완료/2024/202412/20241207 서래마을 포폴라리타", "date": "2024.12.07", "vids": 6, "secs": null, "photos": null, "blog": "223686667730", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "1c300880", "name": "수내 밀리언초밥", "store": "밀리언초밥", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "223664209143", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "95bb8a8a", "name": "신논현 닭갈비전", "store": "닭갈비전", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "223634684386", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "f37078d0", "name": "경주 그때그소간지", "store": "그때그소간지", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "223671276038", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "ad9d5fc3", "name": "두부상회", "store": "두부상회", "folder": "", "date": "", "vids": 5, "secs": null, "photos": null, "blog": "223400929809", "memo": "비추천 (가로 영상 많음)", "tier": "3순위", "rec": "post"}, {"id": "871c4560", "name": "수내 주막골포장마차", "store": "주막골포장마차", "folder": "", "date": "", "vids": 4, "secs": null, "photos": null, "blog": "223568297184", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "cb290acc", "name": "서초 브라이언스버거", "store": "브라이언스버거", "folder": "", "date": "", "vids": 4, "secs": null, "photos": null, "blog": "223549263802", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "a50696a6", "name": "양재 미몽", "store": "미몽", "folder": "", "date": "", "vids": 4, "secs": null, "photos": null, "blog": "223619050989", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "cdb8d272", "name": "강남 봉우화로", "store": "봉우화로", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "923417e7", "name": "판교 미술이자카야", "store": "미술이자카야", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "463069ef", "name": "속초 산호횟집", "store": "산호횟집", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "88834c46", "name": "광화문 베이징코야", "store": "베이징코야", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "2a46ac41", "name": "광화문 고우가", "store": "고우가", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "ebf94ac1", "name": "서대문 디히채", "store": "디히채", "folder": "", "date": "", "vids": 3, "secs": null, "photos": null, "blog": "", "memo": "", "tier": "3순위", "rec": "post"}, {"id": "c6ada222", "name": "경주 백운당", "store": "백운당", "folder": "", "date": "", "vids": 12, "secs": null, "photos": null, "blog": "223671150795", "memo": "", "tier": "카페·베이커리", "rec": "post"}, {"id": "1cc2b22e", "name": "경기광주 오라운트", "store": "오라운트", "folder": "", "date": "", "vids": 4, "secs": null, "photos": null, "blog": "223520668749", "memo": "", "tier": "카페·베이커리", "rec": "post"}];
+const BUILT = "2026.11.24 23:36";
+const STATE_URL = "https://script.google.com/macros/s/AKfycbwnUdKsjcl5rJDw6oWcgf9b8ydPycpAw5Jk7QYjg8Y6TLe_JZUYbRCIR_HWXq7mYvhY/exec";   // 구글 드라이브 '클립키트_상태.json'을 읽고 쓰는 Apps Script 웹앱 (비면 동기화 없음)
+const KEY = "clipkit.uploaded";
+let marks = {};      // 동기화가 없을 때만 쓰는 이 기기 임시 표시
+let sync = null;     // 드라이브 상태 {uploaded: {항목명: {at,type,store}}, requests: [...]}
+let syncNote = "";
+let syncing = false;
+const draft = {};   // 후보별 입력 중인 값 {fmt, style, memo} — 동기화로 다시 그려도 유지
+let view = (() => { try { return localStorage.getItem("clipkit.view") || "todo"; } catch (_) { return "todo"; } })();
+let openCand = null;
+const $ = (id) => document.getElementById(id);
+
+/* ---------- 드라이브 동기화 ---------- */
+// 열쇠는 처음 한 번 '주소#k=열쇠'로 열면 이 기기에 저장된다 (사이트 소스에는 넣지 않는다).
+function syncKey() {
+  const m = location.hash.match(/k=([\w-]+)/);
+  if (m) { try { localStorage.setItem("clipkit.key", m[1]); } catch (_) {} history.replaceState(null, "", location.pathname); return m[1]; }
+  try { return localStorage.getItem("clipkit.key") || ""; } catch (_) { return ""; }
+}
+const SKEY = STATE_URL.startsWith("http") ? syncKey() : "";
+
+async function syncCall(body) {
+  const r = body
+    ? await fetch(STATE_URL, { method: "POST", body: JSON.stringify({ k: SKEY, ...body }) })   // text/plain → preflight 없음
+    : await fetch(`${STATE_URL}?k=${encodeURIComponent(SKEY)}`);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  j.uploaded = j.uploaded || {}; j.requests = j.requests || [];
+  try { localStorage.setItem("clipkit.state", JSON.stringify(j)); } catch (_) {}   // 다음에 열 때 바로 보여줄 마지막 상태
+  return j;
+}
+function stamp() { return new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }); }
+
+function isUp(it) { return sync ? !!sync.uploaded[it.name] : !!marks[it.id]; }
+function upAt(it) { return sync ? sync.uploaded[it.name]?.at : marks[it.id]?.at; }
+
+async function toggle(it) {
+  if (!sync) {
+    if (marks[it.id]) delete marks[it.id]; else marks[it.id] = { at: new Date().toISOString() };
+    saveMarks(); render(); return;
+  }
+  const was = sync.uploaded[it.name];
+  if (was) delete sync.uploaded[it.name]; else sync.uploaded[it.name] = { at: new Date().toISOString(), type: it.type, store: it.store };
+  render();
+  try {
+    sync = await syncCall(was ? { op: "unmark", name: it.name } : { op: "mark", name: it.name, type: it.type, store: it.store });
+    syncNote = `드라이브에 저장됨 ${stamp()}`;
+  } catch (e) {
+    if (was) sync.uploaded[it.name] = was; else delete sync.uploaded[it.name];
+    syncNote = "드라이브에 저장하지 못했어요. 다시 눌러 주세요.";
+  }
+  render();
+}
+
+function loadMarks() {
+  try { marks = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (_) { marks = {}; }
+  for (const id of Object.keys(marks)) if (!ITEMS.some(i => i.id === id)) delete marks[id];   // 이미 정리된 항목은 버린다
+  saveMarks();
+}
+function saveMarks() { try { localStorage.setItem(KEY, JSON.stringify(marks)); } catch (_) {} }
+
+function weekStart() {
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));   // 월요일 시작
+  return d;
+}
+
+async function copy(text, btn, label) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "-1000px"; document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    try { ok = document.execCommand("copy"); } catch (_) {} ta.remove();
+  }
+  btn.textContent = ok ? "복사됨" : "복사 실패"; btn.classList.add("ok");
+  setTimeout(() => { btn.textContent = label; btn.classList.remove("ok"); }, 1600);
+}
+
+const mb = (b) => (b / 1048576).toFixed(b > 10485760 ? 0 : 1) + "MB";
+
+async function saveToPhotos(it, btn, label, slot) {
+  // iOS Safari: 공유 시트에 파일을 넘기면 '이미지 저장'/'비디오 저장'으로 사진첩에 들어간다. 안 되면 파일 링크를 펼친다.
+  btn.disabled = true;
+  try {
+    const files = [];
+    for (let i = 0; i < it.assets.length; i++) {
+      btn.textContent = `받는 중 ${i + 1}/${it.assets.length}…`;
+      const r = await fetch(it.assets[i]);
+      if (!r.ok) throw new Error("fetch " + r.status);
+      const blob = await r.blob();
+      const name = it.assets[i].split("/").pop();
+      files.push(new File([blob], name, { type: name.endsWith(".mp4") ? "video/mp4" : "image/jpeg" }));
+    }
+    if (navigator.canShare && navigator.canShare({ files })) {
+      btn.textContent = "공유 시트에서 저장을 누르세요";
+      await navigator.share({ files, title: it.store });
+      btn.textContent = "저장했어요"; btn.classList.add("ok");
+    } else {
+      showLinks(it, slot);
+      btn.textContent = "아래 링크로 저장";
+    }
+  } catch (e) {
+    if (e && e.name === "AbortError") btn.textContent = label;
+    else { showLinks(it, slot); btn.textContent = "아래 링크로 저장"; }
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { if (!btn.classList.contains("ok")) btn.textContent = label; btn.classList.remove("ok"); }, 4000);
+  }
+}
+
+function showLinks(it, slot) {
+  slot.hidden = false;
+  slot.replaceChildren(...it.assets.map((a, i) =>
+    el("a", { href: a, target: "_blank", rel: "noopener", download: a.split("/").pop() }, it.type === "video" ? "동영상 열기" : `${i + 1}번`)));
+}
+
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v; else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids) if (k != null && k !== false) n.append(k);
+  return n;
+}
+
+
+/* ---------- 올릴 것 ---------- */
+const openCards = new Set();   // 펼친 카드 (다시 그려도 유지)
+function card(it) {
+  const mark = isUp(it);
+  const isOpen = openCards.has(it.id);
+  const slot = el("div", { class: "links", hidden: true });
+  const saveLabel = it.type === "video" ? `저장 ${mb(it.bytes)}` : `사진 ${it.assets.length}장 저장`;
+  const saveBtn = el("button", { class: "save", onclick: () => saveToPhotos(it, saveBtn, saveLabel, slot) }, saveLabel);
+  const copyBtn = el("button", { class: "copy", onclick: () => copy(it.desc, copyBtn, "설명 복사") }, "설명 복사");
+  const chk = el("button", { class: "chk", "aria-pressed": mark ? "true" : "false", "aria-label": mark ? "올림 취소" : "올렸어요", title: mark ? "올림 취소" : "올렸어요", onclick: () => toggle(it) }, "✓");
+  const fold = el("button", { class: "fold", "aria-expanded": isOpen ? "true" : "false", onclick: () => { if (isOpen) openCards.delete(it.id); else openCards.add(it.id); render(); } }, isOpen ? "접기 ▴" : "자세히 ▾");
+  const top = el("div", { class: "top" },
+    el("img", { src: it.thumbs[0], alt: "", loading: "lazy" }),
+    el("div", { class: "ttl" }, el("b", {}, it.store),
+      el("span", {}, el("span", { class: "chip" }, it.type === "video" ? "동영상" : "게시물"), mark ? "올림 표시함" : it.date)),
+    fold);
+  const acts = el("div", { class: "acts" }, saveBtn, copyBtn, chk);
+  if (!isOpen) return el("article", { class: "kc" + (mark ? " done" : "") }, top, acts, slot);
+
+  const tagBtn = el("button", { class: "mini", onclick: () => copy(it.tag.split(" (")[0], tagBtn, "복사") }, "복사");
+  const steps = it.type === "video"
+    ? ["영상 선택", "음원 추가", "설명 붙여넣기", "장소 태그", "전체 공개"]
+    : ["사진 01부터 선택", "설명 붙여넣기", "장소 태그", "전체 공개"];
+  return el("article", { class: "kc" + (mark ? " done" : "") }, top, acts, slot,
+    el("div", { class: "detail" },
+      el("div", { class: "strip" }, ...it.thumbs.map((src, i) => el("img", { src, alt: `${it.store} ${i + 1}번`, loading: "lazy" }))),
+      el("div", { class: "row" }, el("dt", {}, "장소 태그"), el("dd", {}, it.tag), tagBtn),
+      el("pre", { class: "desc open" }, it.desc || "(설명 파일이 없어요)"),
+      el("p", { class: "note", style: "text-align:left" }, `설명 ${it.chars}자 · ${it.type === "video" ? mb(it.bytes) : `사진 ${it.assets.length}장`}`),
+      el("ul", { class: "steps" }, ...steps.map(st => el("li", { class: st === "음원 추가" ? "key" : "" }, st)))));
+}
+
+function reportText() {
+  const picked = ITEMS.filter(isUp);
+  return "클립 올렸어:\n" + picked.map(i => `- ${i.name} (${new Date(upAt(i)).toLocaleDateString("ko-KR")})`).join("\n");
+}
+
+/* ---------- 만들 것 ---------- */
+function candRow(c) {
+  const isOpen = openCand === c.id;
+  const req = sync && sync.requests.find(r => r.name === c.name && r.status !== "done");
+  const isReq = !!req;
+  const meta = [c.date, c.vids ? `영상 ${c.vids}개${c.secs ? " " + c.secs + "초" : ""}` : "영상 없음",
+    c.photos != null ? `사진 ${c.photos}장` : null, c.blog ? "블로그 ✓" : "블로그 확인 필요"].filter(Boolean).join(" · ");
+  const head = el("button", { "aria-expanded": isOpen ? "true" : "false", onclick: () => { openCand = isOpen ? null : c.id; renderMake(); } },
+    el("span", { class: "nm" }, c.name),
+    el("span", { class: "rec" }, isReq ? el("span", { class: "chip req" }, STATUS[req.status] || "요청됨")
+      : el("span", { class: "chip" + (c.blog ? "" : " warn") }, c.rec === "video" ? "동영상 추천" : "게시물 추천")),
+    el("span", { class: "meta" }, meta));
+  if (!isOpen) return el("div", { class: "cand" }, head);
+
+  const fid = "f-" + c.id, sid = "s-" + c.id;
+  const d = draft[c.id] = draft[c.id] || { fmt: c.rec === "video" ? "video" : "post", style: "1안", memo: "" };
+  const memo = el("textarea", { id: "m-" + c.id, placeholder: "원고·메모 (선택): 꼭 넣을 장면, 자막에 쓸 말, 빼야 할 사진",
+    oninput: () => { d.memo = memo.value; } });
+  memo.value = d.memo;
+  const fmt = () => document.querySelector(`input[name="${fid}"]:checked`).value;
+  const styleSeg = el("div", { class: "seg" },
+    el("label", {}, el("input", { type: "radio", name: sid, value: "1안", checked: d.style === "1안", onchange: () => { d.style = "1안"; } }), "1안 (기본)"),
+    el("label", {}, el("input", { type: "radio", name: sid, value: "2안", checked: d.style === "2안", onchange: () => { d.style = "2안"; } }), "2안 (클로즈업)"));
+  const fmtSeg = el("div", { class: "seg" },
+    el("label", {}, el("input", { type: "radio", name: fid, value: "video", checked: d.fmt === "video", onchange: () => { d.fmt = "video"; styleSeg.hidden = false; } }), "동영상"),
+    el("label", {}, el("input", { type: "radio", name: fid, value: "post", checked: d.fmt === "post", onchange: () => { d.fmt = "post"; styleSeg.hidden = true; } }), "게시물"));
+  styleSeg.hidden = d.fmt !== "video";
+  const text = () => {
+    const f = fmt();
+    const style = document.querySelector(`input[name="${sid}"]:checked`).value;
+    return [`${f === "video" ? "동영상 클립" : "게시물"} 만들어줘: ${c.name}`,
+      `- 드라이브: ${c.folder || "폴더 확인 필요"}`,
+      c.blog ? `- 블로그: https://blog.naver.com/safecapsul/${c.blog}` : "- 블로그: 확인 필요",
+      f === "video" && `- 편집: ${style}`,
+      memo.value.trim() && `- 원고/메모:\n${memo.value.trim()}`].filter(Boolean).join("\n");
+  };
+  const send = el("button", { class: "gh", onclick: async () => {
+    send.disabled = true; send.textContent = "보내는 중…";
+    try {
+      sync = await syncCall({ op: "request", req: { name: c.name, folder: c.folder, blog: c.blog, type: fmt(),
+        style: fmt() === "video" ? document.querySelector(`input[name="${sid}"]:checked`).value : "", memo: memo.value.trim(), text: text() } });
+      syncNote = `요청 저장됨 ${stamp()}`; delete draft[c.id]; openCand = null; render();
+    } catch (e) { send.disabled = false; send.textContent = "저장 실패 — 다시 누르기"; }
+  } }, isReq ? "한 번 더 요청하기" : "요청 보내기");
+  const cp = el("button", { class: "copy", onclick: () => copy(text(), cp, "요청 복사 (Claude에 붙여넣기)") }, "요청 복사 (Claude에 붙여넣기)");
+  return el("div", { class: "cand" }, head,
+    el("div", { class: "body" },
+      c.memo && el("p", { class: "memo-note" }, c.memo),
+      !c.blog && el("p", { class: "warnbox" }, "블로그 글을 못 찾았어요. 자막·설명은 블로그 사실만 쓰니, 발행된 글이 있으면 메모에 링크를 적어주세요."),
+      fmtSeg, styleSeg, memo, sync ? send : cp));
+}
+
+const STATUS = { new: "요청됨", making: "만드는 중", done: "완료" };
+function renderMyReq() {
+  const box = $("myreq");
+  const list = sync ? [...sync.requests].sort((a, b) => b.at.localeCompare(a.at)) : [];
+  box.hidden = !list.length;
+  if (!list.length) return;
+  const active = list.filter(r => r.status !== "done"), done = list.filter(r => r.status === "done");
+  const doneBtn = done.length && el("button", { class: "fold-done", "aria-expanded": showDoneReq ? "true" : "false", onclick: () => {
+    showDoneReq = !showDoneReq; try { localStorage.setItem("clipkit.doneReq", showDoneReq ? "1" : ""); } catch (_) {} renderMyReq();
+  } }, showDoneReq ? `완료 ${done.length}개 접기 ▴` : `완료 ${done.length}개 보기 ▾`);
+  box.replaceChildren(el("h3", {}, `내 요청 ${active.length ? `진행 중 ${active.length}` : "진행 중인 요청 없음"}`),
+    ...active.map(reqRow), doneBtn, ...(showDoneReq ? done.map(reqRow) : []));
+}
+let showDoneReq = (() => { try { return !!localStorage.getItem("clipkit.doneReq"); } catch (_) { return false; } })();
+function reqRow(r) {
+  {
+    const cancel = r.status === "new" && el("button", { class: "mini", onclick: async () => {
+      cancel.disabled = true; cancel.textContent = "취소 중…";
+      try { sync = await syncCall({ op: "cancel", id: r.id }); syncNote = `요청 취소됨 ${stamp()}`; render(); }
+      catch (e) { cancel.disabled = false; cancel.textContent = "취소 실패"; }
+    } }, "취소");
+    return el("div", { class: "drow" },
+      el("span", {}, el("span", { class: "chip" + (r.status === "done" ? "" : " req") }, STATUS[r.status] || r.status), " ",
+        `${r.name} · ${r.type === "video" ? "동영상 " + (r.style || "") : "게시물"}`, r.note ? ` · ${r.note}` : ""),
+      cancel || el("span", {}, new Date(r.at).toLocaleDateString("ko-KR")));
+  }
+}
+
+function renderMake() {
+  renderMyReq();
+  const q = $("q").value.trim().replace(/\s/g, "");
+  const list = CANDS.filter(c => !q || (c.name + c.folder).replace(/\s/g, "").includes(q));
+  const groups = [...new Set(list.map(c => c.tier))];
+  $("cands").replaceChildren(...(list.length ? groups.map(g => el("div", { class: "group" },
+    el("h3", {}, g), ...list.filter(c => c.tier === g).map(candRow)))
+    : [el("p", { class: "empty" }, "검색 결과가 없어요.")]));
+}
+
+/* ---------- 공통 ---------- */
+let typeF = "all";
+try { typeF = localStorage.getItem("clipkit.type") || "all"; } catch (_) {}
+const byType = (arr) => typeF === "all" ? arr : arr.filter(d => d.type === typeF);
+function renderTypeF(arr) {
+  $("typef").hidden = view === "make";
+  for (const b of $("typef").querySelectorAll("button")) {
+    const t = b.dataset.t;
+    b.setAttribute("aria-pressed", typeF === t);
+    b.querySelector("span").textContent = t === "all" ? arr.length : arr.filter(d => d.type === t).length;
+  }
+}
+function render() {
+  const todo = byType(ITEMS);
+  $("n-todo").textContent = ITEMS.length; $("n-make").textContent = CANDS.length; $("n-done").textContent = DONE.length;
+  for (const v of ["todo", "make", "done"]) { $("t-" + v).setAttribute("aria-pressed", view === v); $("v-" + v).hidden = view !== v; }
+  $("list").replaceChildren(...(todo.length ? todo.map(card) : [el("p", { class: "empty" }, ITEMS.length ? "이 종류는 올릴 게 없어요." : "올릴 게 없어요. '만들 것'에서 다음 클립을 요청하세요.")]));
+  const picked = ITEMS.filter(isUp);
+  $("report").hidden = !picked.length;
+  $("report-text").textContent = `올림 표시 ${picked.length}개: ` + picked.map(i => i.store).join(", ");
+  $("report-btn").hidden = !!sync;
+  $("report-sync").hidden = !sync;
+
+  // 올린 것 = 빌드 때 넣은 로그 + 드라이브에 막 표시된 것 (같은 항목은 한 번만)
+  const logged = new Set(DONE.map(d => d.name));
+  const fresh = sync ? Object.entries(sync.uploaded).filter(([n]) => !logged.has(n)).map(([name, r]) => ({ name, store: r.store, type: r.type, date: r.at.slice(0, 10) }))
+    : ITEMS.filter(i => marks[i.id]).map(i => ({ name: i.name, store: i.store, type: i.type, date: marks[i.id].at.slice(0, 10) }));
+  const all = [...fresh, ...DONE];
+  const ws = weekStart();
+  const week = (t) => all.filter(d => d.type === t && d.date && new Date(d.date + "T00:00:00") >= ws).length;
+  const v = week("video"), p = week("post");
+  $("mv").textContent = v; $("mp").textContent = p;
+  $("bv").style.width = Math.min(100, v / 6 * 100) + "%"; $("bp").style.width = Math.min(100, p / 6 * 100) + "%";
+  $("lead").textContent = `올릴 것 ${ITEMS.filter(i => !isUp(i)).length}개 · 만들 후보 ${CANDS.length}곳`;
+  $("n-done").textContent = all.length;
+
+  renderTypeF(view === "done" ? all : ITEMS);
+  const shown = byType(all);
+  $("done").replaceChildren(...(shown.length ? shown.map(d => el("div", { class: "drow" },
+    el("span", {}, `${d.type === "video" ? "동영상" : "게시물"} · ${d.store}`), el("span", {}, d.date || "이전")))
+    : [el("p", { class: "empty" }, "기록이 없어요.")]));
+  $("built").textContent = `사이트 갱신 ${BUILT}` + (sync ? ` · ${syncNote || "드라이브와 동기화됨"}` : syncing ? " · 드라이브 확인 중…" : STATE_URL.startsWith("http") ? (SKEY ? " · 드라이브에 연결하지 못했어요" : " · 드라이브 연결 안 됨 (열쇠 링크로 한 번 열어 주세요)") : "");
+  if (view === "make") renderMake();
+}
+
+for (const v of ["todo", "make", "done"]) $("t-" + v).addEventListener("click", () => {
+  view = v; try { localStorage.setItem("clipkit.view", v); } catch (_) {} render();
+});
+$("q").addEventListener("input", renderMake);
+$("reload").addEventListener("click", () => {
+  // 새 클립이 배포됐을 수도 있으니 페이지째 새로 받는다 (드라이브 상태는 열 때 다시 받음)
+  $("reload").classList.add("spin");
+  location.replace(location.pathname + "?r=" + Date.now());
+});
+for (const b of $("typef").querySelectorAll("button")) b.addEventListener("click", () => {
+  typeF = b.dataset.t; try { localStorage.setItem("clipkit.type", typeF); } catch (_) {} render();
+});
+$("report-btn").addEventListener("click", () => copy(reportText(), $("report-btn"), "올린 목록 복사"));
+loadMarks(); render();
+// 드라이브 JSON이 기준: 마지막으로 받은 상태로 바로 그리고, 새로 받아 덮는다. 다시 이 화면으로 돌아올 때도 새로 받는다.
+function refresh() {
+  if (!SKEY || syncing) return;
+  syncing = true; render();
+  syncCall().then(s => { sync = s; syncNote = `드라이브와 동기화됨 ${stamp()}`; })
+    .catch(() => { syncNote = sync ? "드라이브에서 새로 받지 못했어요 (마지막 상태 표시 중)" : ""; })
+    .finally(() => { syncing = false; render(); });
+}
+if (SKEY) { try { const c = JSON.parse(localStorage.getItem("clipkit.state") || "null"); if (c) { sync = c; syncNote = "마지막 상태 표시 중 · 새로 받는 중…"; } } catch (_) {} }
+render(); refresh();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refresh(); });
+</script>
+</body>
+</html>
